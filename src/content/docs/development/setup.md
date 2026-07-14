@@ -34,7 +34,7 @@ The explorer will be available at `http://localhost:3000`.
 
 ## Terminal Product
 
-Stellar Explorer includes a Go-based terminal interface for keyboard-driven Stellar lookup and monitoring:
+StellarView Explorer includes a Go-based terminal interface for keyboard-driven Stellar lookup and monitoring:
 
 ```bash
 bun run tui:build

@@ -1,6 +1,6 @@
 ---
 title: Exploring Transactions
-description: How to find and understand transactions on Stellar Explorer.
+description: How to find and understand transactions on StellarView Explorer.
 ---
 
 Transactions are the fundamental units of change on the Stellar network. Each transaction contains one or more operations that modify the ledger state.

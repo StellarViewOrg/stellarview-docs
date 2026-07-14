@@ -23,4 +23,4 @@ Haz clic en cualquier activo para ver:
 
 ## Información TOML
 
-Stellar Explorer obtiene y muestra metadatos del archivo `stellar.toml` del emisor. Esto incluye el nombre oficial del activo, descripción, logo e información de cumplimiento. Los datos TOML se obtienen a través de un proxy seguro para prevenir ataques SSRF.
+StellarView Explorer obtiene y muestra metadatos del archivo `stellar.toml` del emisor. Esto incluye el nombre oficial del activo, descripción, logo e información de cumplimiento. Los datos TOML se obtienen a través de un proxy seguro para prevenir ataques SSRF.

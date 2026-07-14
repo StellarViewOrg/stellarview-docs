@@ -1,9 +1,9 @@
 ---
 title: Routing
-description: How URL routing works in Stellar Explorer.
+description: How URL routing works in StellarView Explorer.
 ---
 
-Stellar Explorer uses the Next.js App Router with a nested dynamic segment pattern.
+StellarView Explorer uses the Next.js App Router with a nested dynamic segment pattern.
 
 ![Routing](../../../assets/diagrams/routing.svg)
 

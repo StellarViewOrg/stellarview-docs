@@ -1,9 +1,9 @@
 ---
 title: Providers & Context
-description: How context providers are structured in Stellar Explorer.
+description: How context providers are structured in StellarView Explorer.
 ---
 
-Stellar Explorer uses React context providers to share global state. The wrap order matters — inner providers can access outer providers but not the reverse.
+StellarView Explorer uses React context providers to share global state. The wrap order matters — inner providers can access outer providers but not the reverse.
 
 ![Providers](../../../assets/diagrams/providers.svg)
 

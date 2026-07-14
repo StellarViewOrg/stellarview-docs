@@ -1,9 +1,9 @@
 ---
 title: Proveedores y contexto
-description: Cómo están estructurados los proveedores de contexto en Stellar Explorer.
+description: Cómo están estructurados los proveedores de contexto en StellarView Explorer.
 ---
 
-Stellar Explorer usa proveedores de contexto React para compartir estado global. El orden de envoltura importa — los proveedores internos pueden acceder a los externos, pero no al revés.
+StellarView Explorer usa proveedores de contexto React para compartir estado global. El orden de envoltura importa — los proveedores internos pueden acceder a los externos, pero no al revés.
 
 ![Providers](../../../../assets/diagrams/providers.svg)
 

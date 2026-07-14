@@ -1,16 +1,16 @@
 ---
 title: Arquitectura del TUI
-description: Arquitectura de la interfaz terminal de Stellar Explorer y su ruta de datos dedicada.
+description: Arquitectura de la interfaz terminal de StellarView Explorer y su ruta de datos dedicada.
 ---
 
 ## Descripción general
 
-El TUI de Stellar Explorer es una interfaz terminal para inspeccionar datos de la red Stellar. Está diseñado para usuarios que necesitan acceso rápido, con teclado, a ledgers, transacciones, cuentas, activos, contratos y actividad Soroban desde la línea de comandos.
+El TUI de StellarView Explorer es una interfaz terminal para inspeccionar datos de la red Stellar. Está diseñado para usuarios que necesitan acceso rápido, con teclado, a ledgers, transacciones, cuentas, activos, contratos y actividad Soroban desde la línea de comandos.
 
 El TUI se compone de dos partes coordinadas:
 
 - `apps/tui`: aplicación terminal escrita en Go, responsable de la experiencia de usuario, estado local, navegación y acceso directo a Stellar RPC.
-- `services/tui-indexer`: backend de Stellar Explorer dedicado a flujos terminales, responsable de lecturas indexadas, búsqueda, timelines y datos de actividad en vivo.
+- `services/tui-indexer`: backend de StellarView Explorer dedicado a flujos terminales, responsable de lecturas indexadas, búsqueda, timelines y datos de actividad en vivo.
 
 Esta estructura mantiene el producto terminal enfocado: la aplicación conserva una experiencia local y rápida, mientras el backend prepara datos más ricos para vistas que necesitan más contexto que una consulta individual a Stellar RPC.
 
@@ -117,7 +117,7 @@ Esto convierte al TUI en un espacio de trabajo persistente, no solo en un client
 - menos ciclos manuales de copiar y consultar
 - visibilidad clara de fuente activa y fallback
 - modo inicial útil con Stellar RPC directo
-- exploración más rica cuando hay datos indexados de Stellar Explorer
+- exploración más rica cuando hay datos indexados de StellarView Explorer
 - contexto local persistente para análisis recurrentes
 
 ## Ruta de madurez

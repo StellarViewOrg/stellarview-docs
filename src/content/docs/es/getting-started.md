@@ -1,13 +1,13 @@
 ---
 title: Primeros pasos
-description: Cómo empezar a usar Stellar Explorer.
+description: Cómo empezar a usar StellarView Explorer.
 ---
 
-Stellar Explorer está disponible en [stellar-explorer.acachete.xyz](https://stellar-explorer.acachete.xyz). No requiere instalación.
+StellarView Explorer está disponible en [stellar-explorer.acachete.xyz](https://stellar-explorer.acachete.xyz). No requiere instalación.
 
 ## Elegir una red
 
-Stellar Explorer soporta tres redes:
+StellarView Explorer soporta tres redes:
 
 | Red | Propósito | Ejemplo de URL |
 |---|---|---|

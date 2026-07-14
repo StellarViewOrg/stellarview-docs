@@ -3,7 +3,7 @@ title: Cambiar de red
 description: Cómo cambiar entre Public, Testnet y Futurenet.
 ---
 
-Stellar Explorer soporta tres redes. La red actual se muestra en el encabezado y se refleja en la URL.
+StellarView Explorer soporta tres redes. La red actual se muestra en el encabezado y se refleja en la URL.
 
 ## Redes disponibles
 
