@@ -10,7 +10,7 @@ stellar-explorer/
 ├── apps/
 │   ├── explorer-web/ # Next.js explorer frontend
 │   ├── docs/         # Astro/Starlight documentation site
-│   └── tui/          # Stellar Explorer terminal interface
+│   └── tui/          # StellarView Explorer terminal interface
 ├── services/
 │   ├── indexer/      # Stable Go data ingestion service
 │   └── tui-indexer/  # Dedicated backend for terminal workflows
@@ -65,7 +65,7 @@ apps/explorer-web/src/
 
 ## Terminal Product (`apps/tui/`)
 
-`apps/tui` is the Go-based terminal interface for Stellar Explorer. It supports keyboard-driven lookup, live monitoring, related-entity traversal, local metadata, and source-aware reads through Stellar RPC or the dedicated TUI backend.
+`apps/tui` is the Go-based terminal interface for StellarView Explorer. It supports keyboard-driven lookup, live monitoring, related-entity traversal, local metadata, and source-aware reads through Stellar RPC or the dedicated TUI backend.
 
 ```
 apps/tui/
@@ -92,4 +92,4 @@ CI workflows:
 
 ## TUI Backend (`services/tui-indexer/`)
 
-`services/tui-indexer` prepares indexed Stellar Explorer data for terminal workflows. It provides read APIs, search, timelines, related records, and live feed data that enrich the terminal experience beyond direct RPC lookups.
+`services/tui-indexer` prepares indexed StellarView Explorer data for terminal workflows. It provides read APIs, search, timelines, related records, and live feed data that enrich the terminal experience beyond direct RPC lookups.

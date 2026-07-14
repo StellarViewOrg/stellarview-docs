@@ -1,13 +1,13 @@
 ---
 title: Architecture Overview
-description: High-level architecture of Stellar Explorer.
+description: High-level architecture of StellarView Explorer.
 ---
 
 :::caution[Construction in Progress]
-Currently, the production version of Stellar Explorer relies on the **Horizon API** for data retrieval. The custom Indexer architecture described in this section is under active development and will replace direct Horizon calls in future updates to enable advanced features.
+Currently, the production version of StellarView Explorer relies on the **Horizon API** for data retrieval. The custom Indexer architecture described in this section is under active development and will replace direct Horizon calls in future updates to enable advanced features.
 :::
 
-Stellar Explorer is a Next.js 16 application that reads data from the Stellar network through two main interfaces: the **Indexer API** (for optimized historical and real-time data) and **Soroban RPC** (for smart contract interactions).
+StellarView Explorer is a Next.js 16 application that reads data from the Stellar network through two main interfaces: the **Indexer API** (for optimized historical and real-time data) and **Soroban RPC** (for smart contract interactions).
 
 ![Architecture Overview](../../../assets/diagrams/architecture-overview.svg)
 
@@ -25,7 +25,7 @@ The Go-based indexer service processes Stellar ledger data into PostgreSQL (with
 
 See the [Indexer Pipeline](./indexer/) for detailed implementation.
 
-Stellar Explorer also includes a terminal interface in `apps/tui` and a dedicated data service in `services/tui-indexer`. Together they provide keyboard-driven Stellar lookup, live monitoring, search, timelines, and source-aware reads for terminal workflows. See [TUI Architecture](./tui/).
+StellarView Explorer also includes a terminal interface in `apps/tui` and a dedicated data service in `services/tui-indexer`. Together they provide keyboard-driven Stellar lookup, live monitoring, search, timelines, and source-aware reads for terminal workflows. See [TUI Architecture](./tui/).
 
 ### Stellar Network
 

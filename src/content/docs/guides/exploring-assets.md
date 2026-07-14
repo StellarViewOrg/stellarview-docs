@@ -23,4 +23,4 @@ Click any asset to see:
 
 ## TOML Information
 
-Stellar Explorer fetches and displays metadata from the issuer's `stellar.toml` file. This includes the asset's official name, description, logo, and compliance information. The TOML data is fetched through a secure proxy to prevent SSRF attacks.
+StellarView Explorer fetches and displays metadata from the issuer's `stellar.toml` file. This includes the asset's official name, description, logo, and compliance information. The TOML data is fetched through a secure proxy to prevent SSRF attacks.

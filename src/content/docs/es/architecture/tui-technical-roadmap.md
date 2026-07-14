@@ -1,11 +1,11 @@
 ---
 title: Roadmap técnico del TUI
-description: Líneas técnicas planificadas para la interfaz terminal de Stellar Explorer.
+description: Líneas técnicas planificadas para la interfaz terminal de StellarView Explorer.
 ---
 
 # Roadmap técnico del TUI
 
-Este roadmap describe el trabajo técnico planificado para el TUI de Stellar Explorer. Está organizado por líneas de implementación para poder planificar cambios futuros sin convertir la documentación en una auditoría.
+Este roadmap describe el trabajo técnico planificado para el TUI de StellarView Explorer. Está organizado por líneas de implementación para poder planificar cambios futuros sin convertir la documentación en una auditoría.
 
 La base actual incluye:
 

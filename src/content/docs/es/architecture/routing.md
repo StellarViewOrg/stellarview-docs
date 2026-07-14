@@ -1,9 +1,9 @@
 ---
 title: Enrutamiento
-description: Cómo funciona el enrutamiento de URLs en Stellar Explorer.
+description: Cómo funciona el enrutamiento de URLs en StellarView Explorer.
 ---
 
-Stellar Explorer usa el App Router de Next.js con un patrón de segmentos dinámicos anidados.
+StellarView Explorer usa el App Router de Next.js con un patrón de segmentos dinámicos anidados.
 
 ![Routing](../../../../assets/diagrams/routing.svg)
 

@@ -1,6 +1,6 @@
 ---
 title: Exploring Smart Contracts
-description: How to browse Soroban smart contracts on Stellar Explorer.
+description: How to browse Soroban smart contracts on StellarView Explorer.
 ---
 
 Soroban is Stellar's smart contract platform. Contracts are identified by a contract ID (starting with `C`).

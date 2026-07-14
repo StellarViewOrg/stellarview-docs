@@ -1,6 +1,6 @@
 ---
 title: Explorar contratos inteligentes
-description: Cómo navegar los contratos inteligentes Soroban en Stellar Explorer.
+description: Cómo navegar los contratos inteligentes Soroban en StellarView Explorer.
 ---
 
 Soroban es la plataforma de contratos inteligentes de Stellar. Los contratos se identifican por un ID de contrato (que comienza con `C`).

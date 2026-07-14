@@ -1,11 +1,11 @@
 ---
 title: TUI Product Roadmap
-description: Planned product direction for the Stellar Explorer terminal interface.
+description: Planned product direction for the StellarView Explorer terminal interface.
 ---
 
 # TUI Product Roadmap
 
-The Stellar Explorer TUI is planned as a professional terminal workspace for exploring Stellar activity. The product direction is focused on fast investigation, source-aware data access, Soroban clarity, live monitoring, and local working context.
+The StellarView TUI is planned as a professional terminal workspace for exploring Stellar activity. The product direction is focused on fast investigation, source-aware data access, Soroban clarity, live monitoring, and local working context.
 
 This roadmap describes the user-facing capabilities planned for upcoming iterations. It is intentionally written as product direction, not as an audit checklist.
 

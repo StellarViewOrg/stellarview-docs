@@ -1,16 +1,16 @@
 ---
 title: TUI Architecture
-description: Architecture for the Stellar Explorer terminal interface and its dedicated data path.
+description: Architecture for the StellarView Explorer terminal interface and its dedicated data path.
 ---
 
 ## Overview
 
-The Stellar Explorer TUI is a terminal interface for inspecting Stellar network data. It is designed for users who need fast, keyboard-driven access to ledgers, transactions, accounts, assets, contracts, and Soroban activity from a command-line environment.
+The StellarView TUI is a terminal interface for inspecting Stellar network data. It is designed for users who need fast, keyboard-driven access to ledgers, transactions, accounts, assets, contracts, and Soroban activity from a command-line environment.
 
 The TUI is made of two coordinated parts:
 
 - `apps/tui`: the Go terminal application, responsible for the user experience, local state, navigation, and direct Stellar RPC access.
-- `services/tui-indexer`: the Stellar Explorer backend dedicated to terminal workflows, responsible for indexed reads, search, timeline slices, and live feed data.
+- `services/tui-indexer`: the StellarView Explorer backend dedicated to terminal workflows, responsible for indexed reads, search, timeline slices, and live feed data.
 
 This structure keeps the terminal product focused: the app stays responsive and local-first, while the backend prepares richer Stellar data for views that need more context than a single RPC lookup can provide.
 
@@ -117,7 +117,7 @@ This makes the terminal useful as a persistent workspace, not just a transient l
 - fewer manual lookup loops
 - clear visibility into active data source and fallback state
 - useful default mode through direct Stellar RPC
-- richer exploration when indexed Stellar Explorer data is available
+- richer exploration when indexed StellarView Explorer data is available
 - persistent local context for recurring analysis
 
 ## Maturity Path

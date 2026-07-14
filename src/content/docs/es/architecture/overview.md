@@ -1,9 +1,9 @@
 ---
 title: Descripción general de la arquitectura
-description: Arquitectura de alto nivel de Stellar Explorer.
+description: Arquitectura de alto nivel de StellarView Explorer.
 ---
 
-Stellar Explorer es una aplicación Next.js 16 que lee datos de la red Stellar a través de dos APIs: Horizon (REST) y Soroban RPC (JSON-RPC).
+StellarView Explorer es una aplicación Next.js 16 que lee datos de la red Stellar a través de dos APIs: Horizon (REST) y Soroban RPC (JSON-RPC).
 
 ![Architecture Overview](../../../../assets/diagrams/architecture-overview.svg)
 
@@ -28,7 +28,7 @@ No se requiere un backend personalizado para la funcionalidad básica del explor
 
 Un servicio indexador opcional basado en Go procesa datos del ledger de Stellar en PostgreSQL (con TimescaleDB), Redis y Typesense para consultas avanzadas, búsqueda de texto completo y analíticas. Ver [Indexador](./indexer/) para más detalles.
 
-Stellar Explorer también incluye una interfaz terminal en `apps/tui` y un servicio de datos dedicado en `services/tui-indexer`. Juntos permiten búsqueda de datos Stellar con teclado, monitoreo en vivo, búsqueda indexada, timelines y lecturas con origen visible para flujos terminales.
+StellarView Explorer también incluye una interfaz terminal en `apps/tui` y un servicio de datos dedicado en `services/tui-indexer`. Juntos permiten búsqueda de datos Stellar con teclado, monitoreo en vivo, búsqueda indexada, timelines y lecturas con origen visible para flujos terminales.
 
 ## Decisiones de diseño clave
 

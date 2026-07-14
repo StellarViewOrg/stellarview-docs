@@ -1,11 +1,11 @@
 ---
 title: TUI Technical Roadmap
-description: Planned technical implementation tracks for the Stellar Explorer terminal interface.
+description: Planned technical implementation tracks for the StellarView Explorer terminal interface.
 ---
 
 # TUI Technical Roadmap
 
-This roadmap describes the planned technical work behind the Stellar Explorer TUI. It is organized by implementation track so future changes can be planned without turning the documentation into a status audit.
+This roadmap describes the planned technical work behind the StellarView TUI. It is organized by implementation track so future changes can be planned without turning the documentation into a status audit.
 
 The current foundation includes:
 

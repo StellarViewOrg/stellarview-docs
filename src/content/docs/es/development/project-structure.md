@@ -10,7 +10,7 @@ stellar-explorer/
 ├── apps/
 │   ├── explorer-web/ # Frontend Next.js del explorador
 │   ├── docs/         # Sitio de documentación Astro/Starlight
-│   └── tui/          # Interfaz terminal de Stellar Explorer
+│   └── tui/          # Interfaz terminal de StellarView Explorer
 ├── services/
 │   ├── indexer/      # Servicio Go estable de ingestión de datos
 │   └── tui-indexer/  # Backend dedicado para flujos terminales
@@ -65,7 +65,7 @@ apps/explorer-web/src/
 
 ## Producto terminal (`apps/tui/`)
 
-`apps/tui` es la interfaz terminal de Stellar Explorer. Permite buscar y recorrer datos de Stellar con teclado, monitorear actividad en vivo, navegar entidades relacionadas, guardar contexto local y ver con claridad si cada resultado proviene de Stellar RPC o del backend dedicado del TUI.
+`apps/tui` es la interfaz terminal de StellarView Explorer. Permite buscar y recorrer datos de Stellar con teclado, monitorear actividad en vivo, navegar entidades relacionadas, guardar contexto local y ver con claridad si cada resultado proviene de Stellar RPC o del backend dedicado del TUI.
 
 ### Tiers de tests del TUI
 
@@ -83,4 +83,4 @@ Workflows de CI:
 
 ## Backend de TUI (`services/tui-indexer/`)
 
-`services/tui-indexer` prepara datos indexados de Stellar Explorer para flujos terminales. Expone APIs de lectura, búsqueda, timelines, registros relacionados y datos de actividad en vivo que enriquecen la experiencia del TUI más allá de consultas directas a Stellar RPC.
+`services/tui-indexer` prepara datos indexados de StellarView Explorer para flujos terminales. Expone APIs de lectura, búsqueda, timelines, registros relacionados y datos de actividad en vivo que enriquecen la experiencia del TUI más allá de consultas directas a Stellar RPC.

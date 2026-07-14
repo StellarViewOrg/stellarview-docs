@@ -3,7 +3,7 @@ title: Switching Networks
 description: How to switch between Public, Testnet, and Futurenet.
 ---
 
-Stellar Explorer supports three networks. The current network is shown in the header and reflected in the URL.
+StellarView Explorer supports three networks. The current network is shown in the header and reflected in the URL.
 
 ## Available Networks
 

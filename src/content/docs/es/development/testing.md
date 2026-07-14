@@ -3,7 +3,7 @@ title: Testing
 description: Cómo escribir y ejecutar tests.
 ---
 
-Stellar Explorer usa [Vitest](https://vitest.dev/) con el entorno happy-dom.
+StellarView Explorer usa [Vitest](https://vitest.dev/) con el entorno happy-dom.
 
 ## Ejecutar tests
 
