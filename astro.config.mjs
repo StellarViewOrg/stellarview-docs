@@ -1,5 +1,6 @@
 import { defineConfig } from "astro/config";
 import starlight from "@astrojs/starlight";
+import starlightLinksValidator from "starlight-links-validator";
 import rehypeExternalLinks from "rehype-external-links";
 
 const site = "https://docs.stellar-explorer.acachete.xyz";
@@ -19,6 +20,7 @@ export default defineConfig({
   },
   integrations: [
     starlight({
+      plugins: [starlightLinksValidator({ errorOnRelativeLinks: false })],
       title: "StellarView Explorer",
       favicon: "/favicon.png",
       customCss: ["./src/styles/custom.css"],
