@@ -59,6 +59,14 @@ export default defineConfig({
             { slug: "architecture/routing" },
             { slug: "architecture/providers" },
             { slug: "architecture/indexer" },
+            {
+              label: "Indexer Contracts",
+              items: [
+                { slug: "architecture/indexer-contract-spec" },
+                { slug: "architecture/indexer-contract-events" },
+                { slug: "architecture/indexer-token-events" },
+              ],
+            },
             { slug: "architecture/tui" },
             { slug: "architecture/tui-product-roadmap" },
             { slug: "architecture/tui-technical-roadmap" },
