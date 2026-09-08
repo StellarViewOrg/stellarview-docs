@@ -1,6 +1,5 @@
 {
   "$schema": "https://docs.renovatebot.com/renovate-schema.json",
-<<<<<<< HEAD
   "extends": ["config:recommended"],
   "timezone": "UTC",
   "schedule": ["before 6am on monday"],
@@ -20,10 +19,4 @@
     "enabled": true,
     "schedule": ["before 6am on monday"]
   }
-||||||| f32e4e2
-=======
-  "extends": [
-    "config:recommended"
-  ]
->>>>>>> origin/main
 }
