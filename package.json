@@ -18,6 +18,6 @@
     "typescript": "^5.9.3"
   },
   "devDependencies": {
-    "starlight-links-validator": "^0.24.1"
+    "starlight-links-validator": "^0.26.0"
   }
 }
