@@ -3,9 +3,9 @@ import starlight from "@astrojs/starlight";
 import starlightLinksValidator from "starlight-links-validator";
 import rehypeExternalLinks from "rehype-external-links";
 
-const site = "https://docs.stellar-explorer.acachete.xyz";
+const site = "https://docs.stellarview.acachete.xyz";
 const base = "/";
-const githubUrl = "https://github.com/salazarsebas/stellar-explorer";
+const githubUrl = "https://github.com/StellarViewOrg/stellarview-explorer";
 
 export default defineConfig({
   site,
@@ -47,6 +47,10 @@ export default defineConfig({
             { slug: "guides/exploring-accounts" },
             { slug: "guides/exploring-assets" },
             { slug: "guides/exploring-contracts" },
+            { slug: "guides/contract-verification" },
+            { slug: "guides/exploring-domains" },
+            { slug: "guides/exploring-dex" },
+            { slug: "guides/network-analytics" },
             { slug: "guides/exploring-ledgers" },
             { slug: "guides/using-watchlist" },
             { slug: "guides/network-switching" },

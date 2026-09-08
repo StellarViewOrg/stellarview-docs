@@ -41,4 +41,17 @@ make s3backfill     # S3 backfill (pubnet only)
 
 The indexer follows a pipeline pattern: **Source → Transform → Store → Publish**.
 
-For full configuration options and setup instructions, see the [indexer README](https://github.com/salazarsebas/stellar-explorer/blob/main/services/indexer/README.md).
+## HTTP Read API
+
+The indexer serves a frozen HTTP read API, separate from ingestion, that the explorer and TUI consume:
+
+| Surface | Endpoints | Status |
+|---|---|---|
+| Analytics | `GET /api/v1/analytics/timeseries`, `GET /api/v1/analytics/top` | Live |
+| Domains | `GET /v1/domains`, `GET /v1/domains/{name}` | Live |
+| Contract verification | Not yet published | In development |
+| DEX aggregates | Not yet published | In development |
+
+Full request/response shapes are documented in the indexer repo: [`docs/analytics-api.md`](https://github.com/StellarViewOrg/indexer/blob/main/docs/analytics-api.md) and [`docs/domains-api.md`](https://github.com/StellarViewOrg/indexer/blob/main/docs/domains-api.md).
+
+For full configuration options and setup instructions, see the [indexer README](https://github.com/StellarViewOrg/indexer/blob/main/README.md).
