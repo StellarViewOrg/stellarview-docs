@@ -1,0 +1,8 @@
+blank_issues_enabled: false
+contact_links:
+  - name: StellarView Explorer
+    url: https://github.com/StellarViewOrg/stellarview-explorer/issues/new/choose
+    about: Report a bug or request a feature in the explorer itself, not its documentation
+  - name: StellarView Indexer
+    url: https://github.com/StellarViewOrg/indexer/issues/new/choose
+    about: Report a bug or request a feature in the indexer itself, not its documentation

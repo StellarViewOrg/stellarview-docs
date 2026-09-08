@@ -1,0 +1,26 @@
+name: New content request
+description: Request documentation that doesn't exist yet
+title: "[docs]: "
+labels: ["content", "enhancement"]
+body:
+  - type: textarea
+    id: gap
+    attributes:
+      label: What's missing
+      description: What topic, feature, or workflow isn't documented?
+    validations:
+      required: true
+  - type: textarea
+    id: why
+    attributes:
+      label: Why it matters
+      description: Who needs this and what are they currently unable to do without it?
+    validations:
+      required: true
+  - type: input
+    id: audience
+    attributes:
+      label: Audience
+      description: Who is this for? (e.g. Explorer users, Indexer operators, TUI users, contributors)
+    validations:
+      required: false
