@@ -61,15 +61,15 @@ Renovate supervisa dependencias de Node.js/Bun y acciones de workflows de CI:
 | :--- | :--- | :--- |
 | `astro` | Framework web principal | Menor/parche agrupado; PR mayor aislado |
 | `@astrojs/starlight` | Tema y enrutamiento de documentación | Menor/parche agrupado; verificado con validador de enlaces |
-| `@astrojs/tailwind` / `tailwindcss` | Motor de utilidades CSS y plugin Vite | Actualizaciones agrupadas |
-| `@astrojs/check` / `typescript` | Verificación estática de tipos | Actualizaciones agrupadas |
+| `@astrojs/check` | Comprobación estática de tipos para componentes Astro | Actualizaciones agrupadas |
+| `typescript` | Soporte del lenguaje TypeScript | Actualizaciones agrupadas |
 | `sharp` | Optimización de imágenes de alto rendimiento | Actualizaciones agrupadas |
-| `starlight-links-validator` | Validación de integridad de enlaces | Actualizaciones agrupadas |
+| `rehype-external-links` | Procesamiento de enlaces externos y atributos de seguridad | Actualizaciones agrupadas |
+| `starlight-links-validator` | Validación de integridad de enlaces (devDependency) | Actualizaciones agrupadas |
 
 ### GitHub Actions (`.github/workflows/`)
 
 - `actions/checkout`
-- `actions/setup-node`
 - `oven-sh/setup-bun`
 
 ## Operaciones del Dependency Dashboard
@@ -90,11 +90,8 @@ Renovate mantiene un Dependency Dashboard activo en el issue tracker del reposit
 Antes de fusionar actualizaciones de dependencias o enviar PRs relacionados, verifique localmente la instalación y la generación de documentación:
 
 ```bash
-# Instalar dependencias
-bun install
-
-# Verificar comprobación de tipos
-bun run check
+# Instalar dependencias con lockfile congelado
+bun install --frozen-lockfile
 
 # Generar sitio estático y validar enlaces
 bun run build

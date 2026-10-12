@@ -61,15 +61,15 @@ Renovate monitors both Node.js/Bun dependencies and CI workflow actions:
 | :--- | :--- | :--- |
 | `astro` | Core web framework | Grouped minor/patch; isolated major PR |
 | `@astrojs/starlight` | Documentation theme & routing | Grouped minor/patch; verified with Starlight links validator |
-| `@astrojs/tailwind` / `tailwindcss` | Utility CSS engine & Vite plugin | Grouped updates |
-| `@astrojs/check` / `typescript` | Static type checking | Grouped updates |
+| `@astrojs/check` | Static type checking for Astro components | Grouped updates |
+| `typescript` | TypeScript language support | Grouped updates |
 | `sharp` | High-performance image optimization | Grouped updates |
-| `starlight-links-validator` | Documentation link integrity check | Grouped updates |
+| `rehype-external-links` | External link processing & security attributes | Grouped updates |
+| `starlight-links-validator` | Documentation link integrity check (devDependency) | Grouped updates |
 
 ### GitHub Actions (`.github/workflows/`)
 
 - `actions/checkout`
-- `actions/setup-node`
 - `oven-sh/setup-bun`
 
 ## Dependency Dashboard Operations
@@ -90,11 +90,8 @@ Renovate maintains an ongoing Dependency Dashboard in the repository issue track
 Before merging dependency updates or submitting PRs that touch dependencies, always verify clean installation and documentation build locally:
 
 ```bash
-# Install dependencies
-bun install
-
-# Verify static typecheck
-bun run check
+# Install dependencies with frozen lockfile
+bun install --frozen-lockfile
 
 # Verify full static site generation and link validation
 bun run build
