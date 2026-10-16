@@ -1,0 +1,52 @@
+---
+title: "Descripción general del Indexer"
+sidebarTitle: "Descripción general"
+description: "StellarView Indexer ingiere ledgers, operaciones, eventos de contratos y eventos de tokens de Stellar en PostgreSQL y TimescaleDB, y los sirve por HTTP."
+---
+
+import { Diagram } from "/snippets/diagram.mdx";
+
+El indexer es un servicio en Go que convierte el flujo de ledgers de Stellar en tablas consultables. Impulsa las funciones del explorador que las APIs públicas no pueden responder rápido, como las analíticas de toda la red, el historial de Soroban Domains y la verificación del código fuente de contratos.
+
+<Diagram name="indexer-pipeline" alt="Stellar RPC y el data lake de S3 alimentan los comandos live, backfill y s3backfill, que transforman los datos hacia PostgreSQL, Redis y Typesense, servidos por la API de lectura." />
+
+## Qué almacena
+
+| Almacén | Función |
+| --- | --- |
+| **PostgreSQL + TimescaleDB** | Ledgers, transacciones, operaciones, efectos, cuentas, activos, contratos, eventos de contratos, eventos de tokens, trades y dominios. Los continuous aggregates respaldan la API de analíticas. |
+| **Redis** | Pub/sub para eventos en tiempo real. Opcional: sin él, el indexer registra una advertencia y sigue funcionando. |
+| **Typesense** | Búsqueda de texto completo sobre cuentas, activos y contratos. Opcional para la ingesta básica. |
+
+## Cómo ingiere
+
+<CardGroup cols={3}>
+  <Card title="live" icon="radio">
+    Sigue la punta de la red, aproximadamente un ledger cada 5 segundos. Tras un reinicio, continúa desde el último ledger ingerido.
+  </Card>
+  <Card title="backfill" icon="history">
+    Importa un rango de ledgers desde cualquier endpoint RPC con workers en paralelo.
+  </Card>
+  <Card title="s3backfill" icon="archive">
+    Importa el historial de pubnet desde el data lake público de S3. Sin RPC y sin credenciales.
+  </Card>
+</CardGroup>
+
+## Qué sirve
+
+| Superficie | Rutas | Estado |
+| --- | --- | --- |
+| Analíticas | `/api/v1/analytics/timeseries`, `/api/v1/analytics/top` | Disponible |
+| Soroban Domains | `/v1/domains`, `/v1/domains/{name}`, `/v1/domains/{name}/events` | Disponible |
+| Verificación de contratos | `/v1/verify` y `/v1/verify/...` | API congelada, pipeline de compilación en desarrollo |
+| Salud | `/healthz` | Disponible |
+| Métricas | `/metrics` | Interno, formato Prometheus |
+
+Todas las rutas públicas están documentadas en la [referencia de la API](/es/api-reference/introduction).
+
+## Siguientes pasos
+
+- [Ejecútalo en local](/es/indexer/running)
+- [Configuración](/es/indexer/configuration)
+- [Funcionamiento interno del pipeline](/es/indexer/pipeline)
+- Código fuente: [StellarViewOrg/stellarview-indexer](https://github.com/StellarViewOrg/stellarview-indexer)

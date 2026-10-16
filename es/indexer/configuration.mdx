@@ -1,0 +1,39 @@
+---
+title: "Configuración"
+description: "Variables de entorno y listeners HTTP de StellarView Indexer."
+---
+
+El indexer se configura por completo mediante variables de entorno.
+
+## Variables
+
+| Variable | Valor por defecto | Descripción |
+| --- | --- | --- |
+| `RPC_ENDPOINT` | ninguno, obligatorio para `live` y `backfill` | Endpoint de Stellar RPC. |
+| `NETWORK` | `public` | `public`, `testnet` o `futurenet`. Debe coincidir con el endpoint RPC. |
+| `DATABASE_URL` | base de datos local de desarrollo | Cadena de conexión de PostgreSQL. Usa `sslmode=require` en producción. |
+| `REDIS_URL` | `redis://localhost:63790` | Conexión a Redis. Opcional. |
+| `BATCH_SIZE` | `100` | Ledgers por lote. |
+| `WORKER_COUNT` | `8` | Workers en paralelo para backfills y para el procesamiento en vivo de specs de contratos. |
+| `HTTP_ADDR` | ninguno | Listener de la API de dominios y verificación, además de `/healthz` y `/metrics`, en `live`. Tiene prioridad sobre `METRICS_ADDR`. |
+| `METRICS_ADDR` | ninguno | Listener de `/metrics` y `/healthz` en `live`. También sirve la API de dominios cuando `HTTP_ADDR` no está definido. |
+| `API_ADDR` | `:8080` | Listener de la API de lectura que inicia `serve`. |
+| `API_CORS_ORIGINS` | `*` | Lista de orígenes CORS permitidos para la API de lectura, separados por comas. Si está vacía, rechaza las solicitudes de origen cruzado. |
+| `DOMAINS_REGISTRY_CONTRACT_ID` | registro de pubnet | IDs de contratos de registro de Soroban Domains, separados por comas. Obligatorio en testnet y futurenet. |
+
+En pubnet, el indexer observa `CC75Z72OCE667WVPQOROIWDAGBOXFNJ4VQONQEURL74EYIDLWA4F7FEN`, salvo que lo sobrescribas.
+
+## Listeners
+
+Los dos procesos exponen cosas distintas, y conviene exponerlos de forma distinta.
+
+| Dirección | Proceso | Sirve | Exposición |
+| --- | --- | --- | --- |
+| `HTTP_ADDR` / `METRICS_ADDR` | `live` | `/v1/domains`, `/v1/verify`, `/healthz`, `/metrics` | Dominios y verificación son públicos si el explorador lo es. `/metrics` es telemetría interna. |
+| `API_ADDR` | `serve` | `/api/v1/analytics/*`, `/healthz` | Público si el explorador lo es. |
+
+<Tip>
+  Para mantener `/metrics` privado, ponlo en `METRICS_ADDR` y expón públicamente solo `HTTP_ADDR`.
+</Tip>
+
+`serve` no expone `/metrics`. Nunca ingiere datos, así que sus contadores siempre marcarían cero y arrastrarían hacia abajo cualquier alerta basada en un promedio o un mínimo.

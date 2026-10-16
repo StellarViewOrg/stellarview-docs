@@ -1,0 +1,39 @@
+---
+title: "Configuration"
+description: "Environment variables and HTTP listeners for StellarView Indexer."
+---
+
+The indexer is configured entirely through environment variables.
+
+## Variables
+
+| Variable | Default | Description |
+| --- | --- | --- |
+| `RPC_ENDPOINT` | none, required for `live` and `backfill` | Stellar RPC endpoint. |
+| `NETWORK` | `public` | `public`, `testnet`, or `futurenet`. Must match the RPC endpoint. |
+| `DATABASE_URL` | local development database | PostgreSQL connection string. Use `sslmode=require` in production. |
+| `REDIS_URL` | `redis://localhost:63790` | Redis connection. Optional. |
+| `BATCH_SIZE` | `100` | Ledgers per batch. |
+| `WORKER_COUNT` | `8` | Parallel workers for backfills and live contract-spec processing. |
+| `HTTP_ADDR` | none | Listener for the domains and verification API, plus `/healthz` and `/metrics`, on `live`. Takes precedence over `METRICS_ADDR`. |
+| `METRICS_ADDR` | none | Listener for `/metrics` and `/healthz` on `live`. Also serves the domains API when `HTTP_ADDR` is unset. |
+| `API_ADDR` | `:8080` | Listener for the read API started by `serve`. |
+| `API_CORS_ORIGINS` | `*` | Comma-separated CORS allow-list for the read API. Empty refuses cross-origin requests. |
+| `DOMAINS_REGISTRY_CONTRACT_ID` | pubnet registry | Comma-separated Soroban Domains registry contract IDs. Required on testnet and futurenet. |
+
+On pubnet the indexer watches `CC75Z72OCE667WVPQOROIWDAGBOXFNJ4VQONQEURL74EYIDLWA4F7FEN` unless you override it.
+
+## Listeners
+
+The two processes expose different things, and they should be exposed differently.
+
+| Address | Process | Serves | Exposure |
+| --- | --- | --- | --- |
+| `HTTP_ADDR` / `METRICS_ADDR` | `live` | `/v1/domains`, `/v1/verify`, `/healthz`, `/metrics` | Domains and verification are public if the explorer is. `/metrics` is internal telemetry. |
+| `API_ADDR` | `serve` | `/api/v1/analytics/*`, `/healthz` | Public if the explorer is. |
+
+<Tip>
+  To keep `/metrics` private, put it on `METRICS_ADDR` and expose only `HTTP_ADDR` publicly.
+</Tip>
+
+`serve` doesn't expose `/metrics`. It never ingests, so its counters would always read zero and drag down any alert built on an average or a minimum.

@@ -1,0 +1,186 @@
+---
+title: "Decodificación de specs de contratos"
+description: Cómo el indexer obtiene el bytecode WASM, analiza el spec del contrato y clasifica los contratos como tokens SEP-41 o NFT SEP-50.
+---
+
+## Qué permite
+
+Cualquier contrato WASM de Soroban puede incluir una especificación legible por máquinas directamente en el binario, en una sección personalizada llamada `contractspecv0`. Este spec describe la interfaz pública del contrato: sus funciones, sus tipos de entrada y salida, structs personalizados, enums y tipos de error.
+
+El indexer extrae ese spec automáticamente cada vez que se despliega un contrato nuevo, y lo usa para:
+
+- **Clasificar tokens SEP-41**: contratos con las funciones `balance`, `transfer`, `name`, `symbol` y `decimals`, el equivalente en Soroban de ERC-20
+- **Clasificar NFT SEP-50**: contratos con las funciones `owner_of`, `token_uri` y `balance`
+- **Guardar el spec analizado como JSON**: así la consola de lectura y escritura del explorador puede renderizar una interfaz en vivo para llamar a cualquier función de cualquier contrato, sin que el usuario tenga que conocer el ABI a mano
+- **Guardar el bytecode WASM crudo**: para seguimiento del tamaño, verificación del hash y futuras funciones de descompilación
+
+## Cómo funciona
+
+### Detección
+
+Cuando se crea un contrato nuevo, el ledger de Stellar registra un cambio `LedgerEntryCreated` con una entrada `ContractData` cuya clave es `ScvLedgerKeyContractInstance`. `DetectNewContracts` recorre todos los cambios de entradas del ledger en el `LedgerCloseMeta` y recopila las direcciones C de cada nueva instancia de contrato.
+
+### Obtención del spec (asíncrona)
+
+Para cada contrato detectado, `ProcessContractSpec` se ejecuta en una goroutine en segundo plano, de modo que nunca bloquea la ingesta de ledgers:
+
+1. **Obtener la instancia**: `getLedgerEntries` con el `LedgerKey` de la instancia del contrato → extraer el `wasm_hash`
+2. **Obtener el código**: `getLedgerEntries` con el `LedgerKey` de `ContractCode` para ese hash → bytes WASM crudos
+3. **Analizar la sección `contractspecv0`**: un parser mínimo del formato binario WASM recorre los encabezados de sección (byte de tipo + tamaño LEB128) hasta encontrar la sección personalizada llamada `contractspecv0`
+4. **Decodificar las entradas del spec**: el cuerpo de la sección es una secuencia concatenada de valores `SCSpecEntry` codificados en XDR, que se decodifican de forma iterativa con `xdr.NewBytesDecoder`
+5. **Clasificar**: comparar los nombres de las funciones con los conjuntos requeridos por SEP-41 y SEP-50
+6. **Hacer upsert**: escribir en `contract_code` (bytecode, XDR del spec, JSON analizado) y en `contracts` (clasificación, flags de metadatos del token)
+
+**Ruta del código:**
+
+```
+pipeline/live.go ProcessOneLedger()
+  → transform/contract_spec.go DetectNewContracts()     ← synchronous
+    → go ProcessContractSpec()                           ← async goroutine
+      → source/rpc.go GetLedgerEntries()  (×2: instance + code)
+        → extractContractSpecSection()    (WASM parser)
+          → decodeContractSpec()          (XDR decoder)
+            → classifyAsSep41/Sep50()
+              → store/postgres.go UpsertContractCode()
+              → store/postgres.go UpsertContract()
+```
+
+### Formato binario WASM
+
+El formato de un módulo WASM es: el número mágico `\x00asm` + una versión de 4 bytes, seguidos de las secciones. Cada sección tiene esta forma:
+
+```
+[section_type: u8] [section_size: ULEB128] [section_data: bytes]
+```
+
+El tipo de sección `0` es una sección personalizada. Sus datos empiezan con una cadena de nombre precedida por su longitud, seguida del payload. El indexer recorre las secciones hasta encontrar una llamada `contractspecv0`.
+
+### Decodificación del spec
+
+`SCSpecEntry` es una unión XDR con estos tipos:
+
+| Tipo | Descripción |
+|---|---|
+| `FunctionV0` | Una función invocable con nombre, documentación, entradas y salidas |
+| `UdtStructV0` | Un tipo struct personalizado |
+| `UdtUnionV0` | Un tipo union/enum personalizado |
+| `UdtEnumV0` | Un enum de enteros |
+| `UdtErrorEnumV0` | Un enum de errores |
+
+El spec analizado se guarda como un arreglo JSON de objetos en `contracts.contract_spec` y `contract_code.spec_parsed`.
+
+## Esquema
+
+```sql
+-- contracts table (key classification fields)
+contracts (
+  contract_id          TEXT PRIMARY KEY,
+  wasm_hash            TEXT,
+  is_sep41_token       BOOLEAN,   -- true if implements SEP-41 interface
+  is_sep50_nft         BOOLEAN,   -- true if implements SEP-50 interface
+  token_name           TEXT,      -- populated later from token metadata calls
+  token_symbol         TEXT,
+  token_decimals       INT,
+  contract_spec        JSONB,     -- parsed spec entries
+  contract_type        SMALLINT   -- 0=wasm, 1=stellar_asset, 2=custom
+)
+
+-- contract_code table
+contract_code (
+  wasm_hash      TEXT PRIMARY KEY,
+  wasm_bytecode  BYTEA,
+  wasm_size      INT,
+  spec_xdr       TEXT,   -- base64 raw spec XDR
+  spec_parsed    JSONB,  -- parsed function/type list
+  contract_count INT     -- how many contracts share this WASM
+)
+```
+
+## Cómo verificar que funciona
+
+### Requisitos previos
+
+Servicios de Docker en ejecución y migraciones aplicadas. Necesitas un endpoint RPC de testnet, ya que `getLedgerEntries` no está disponible desde el data lake de S3.
+
+### 1. Ejecuta el indexer
+
+```bash
+RPC_ENDPOINT=https://soroban-testnet.stellar.org NETWORK=testnet ./bin/indexer live
+```
+
+El procesamiento de specs de contratos es asíncrono. Busca esto en los logs:
+
+```
+contract_spec: processed C1ABC...XYZ (sep41=true sep50=false wasm=34562 bytes)
+```
+
+### 2. Comprueba que los contratos se detectaron y guardaron
+
+```bash
+docker compose -f infra/docker-compose.yml exec postgres psql -U explorer -d stellar_explorer -c "
+SELECT contract_id, is_sep41_token, is_sep50_nft, contract_type, wasm_hash
+FROM contracts
+ORDER BY created_at DESC
+LIMIT 10;
+"
+```
+
+### 3. Inspecciona el spec analizado del contrato
+
+```bash
+docker compose -f infra/docker-compose.yml exec postgres psql -U explorer -d stellar_explorer -c "
+SELECT contract_id, jsonb_array_length(contract_spec) as fn_count, contract_spec
+FROM contracts
+WHERE contract_spec IS NOT NULL
+ORDER BY created_at DESC
+LIMIT 3;
+" 2>/dev/null | head -60
+```
+
+Cada entrada de `contract_spec` tiene un `kind` y un `name`, por ejemplo:
+
+```json
+[
+  { "kind": "ScSpecEntryKindScSpecEntryFunctionV0", "name": "transfer", "inputs": [...], "outputs": [...] },
+  { "kind": "ScSpecEntryKindScSpecEntryFunctionV0", "name": "balance", "inputs": [...], "outputs": [...] },
+  ...
+]
+```
+
+### 4. Encuentra tokens SEP-41
+
+```bash
+docker compose -f infra/docker-compose.yml exec postgres psql -U explorer -d stellar_explorer -c "
+SELECT contract_id, wasm_hash, token_name, token_symbol, token_decimals
+FROM contracts
+WHERE is_sep41_token = true
+ORDER BY created_at DESC;
+"
+```
+
+### 5. Revisa el bytecode WASM guardado
+
+```bash
+docker compose -f infra/docker-compose.yml exec postgres psql -U explorer -d stellar_explorer -c "
+SELECT wasm_hash, wasm_size, contract_count, spec_xdr IS NOT NULL as has_spec
+FROM contract_code
+ORDER BY created_at DESC
+LIMIT 5;
+"
+```
+
+### 6. Haz backfill de un rango de ledgers conocido para provocar la creación de contratos
+
+Si quieres asegurarte de capturar eventos de creación de contratos, haz backfill de un rango que sepas que contiene despliegues:
+
+```bash
+RPC_ENDPOINT=https://soroban-testnet.stellar.org NETWORK=testnet \
+  ./bin/indexer backfill --start 1000000 --end 1000500
+```
+
+## Notas
+
+- **Procesamiento asíncrono**: `ProcessContractSpec` se ejecuta en una goroutine y nunca bloquea la ingesta de ledgers. Si la llamada RPC falla (el nodo está lento o la entrada expiró), el error se registra en el log y el contrato queda en la base de datos con `wasm_hash = NULL`. El spec se puede completar después con un backfill cuando el RPC esté disponible.
+- **Stellar Asset Contracts (SAC)**: el propio protocolo crea los SAC cuando un activo clásico se envuelve para Soroban. No contienen una sección de spec WASM. El análisis WASM registrará "contractspecv0 section not found" y el contrato se guarda con `contract_spec = NULL` e `is_sep41_token = false`. La clasificación de los SAC (tipo `1`) se manejará en una actualización futura.
+- **WASM compartido**: muchos contratos pueden compartir el mismo `wasm_hash` (mismo bytecode, distintas instancias). El campo `contract_code.contract_count` se incrementa en cada upsert, así puedes ver cuántos contratos usan cada WASM.
+- **Formato de `wasm_hash`**: se guarda como una cadena hexadecimal en minúsculas (64 caracteres), que es el hash SHA-256 del bytecode WASM crudo.

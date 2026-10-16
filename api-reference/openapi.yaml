@@ -1,0 +1,1429 @@
+openapi: 3.1.0
+info:
+  title: StellarView Indexer API
+  version: 0.1.0
+  summary: Public read and submission API of the StellarView Indexer.
+  description: |
+    The StellarView Indexer ingests the Stellar network into PostgreSQL and exposes it over HTTP.
+    The public surface is split across two processes started from the same binary:
+
+    - `live` ingests ledgers and, when `HTTP_ADDR` or `METRICS_ADDR` is set, serves the Soroban
+      Domains read API (`/v1/domains`), contract source verification (`/v1/verify`), and `/healthz`.
+      `HTTP_ADDR` takes precedence over `METRICS_ADDR`. Neither has a default, so the HTTP server
+      is off unless one of them is set.
+    - `serve` does not ingest. It listens on `API_ADDR` (default `:8080`) and serves the network
+      analytics API (`/api/v1/analytics/*`) and `/healthz`.
+
+    No endpoint requires authentication. Error bodies are JSON objects with a single `error` string,
+    except for the domains API, which always answers with its envelope.
+  license:
+    name: Apache-2.0
+    identifier: Apache-2.0
+security: []
+servers:
+  - url: http://localhost:9090
+    description: >-
+      `live` process. Listens on `HTTP_ADDR`, or `METRICS_ADDR` when `HTTP_ADDR` is unset
+      (no default; `:9090` is only an example). Serves /v1/domains, /v1/verify, and /healthz.
+  - url: http://localhost:8080
+    description: >-
+      `serve` process. Listens on `API_ADDR` (default `:8080`). Serves /api/v1/analytics/* and /healthz.
+tags:
+  - name: Domains
+    description: >-
+      Soroban Domains read API: resolve a name, reverse lookup by address, list registrations,
+      and per-domain event history. Availability is reported in the body through `indexed`,
+      never through an HTTP error status.
+  - name: Verification
+    description: >-
+      Contract source verification. Callers submit source and build metadata for a deployed
+      contract and read it back by contract ID or wasm hash. The reproducible-build pipeline that
+      compiles the source and compares hashes is not implemented yet, so every submission
+      currently stays `pending`.
+  - name: Analytics
+    description: >-
+      Network-wide time series and Top-N rankings backed by TimescaleDB continuous aggregates.
+      Read-only, CORS-enabled for browsers.
+  - name: Health
+    description: Liveness and readiness probe.
+
+paths:
+  /v1/domains:
+    servers:
+      - url: http://localhost:9090
+        description: '`live` process (`HTTP_ADDR` or `METRICS_ADDR`).'
+    get:
+      tags: [Domains]
+      operationId: listDomains
+      summary: List domains or reverse lookup by address
+      description: |
+        This route has two modes, chosen by whether `address` is present.
+
+        **Reverse lookup** (`address` set): returns domains whose current resolved address equals
+        `address`, ordered by name. Only records whose computed status is `active` are included,
+        unless `status=all`. `domain` is the first record in `domains` (alphabetically), or `null`
+        when nothing matches. `limit` and `cursor` are ignored in this mode.
+
+        **List** (`address` absent): pages named domains in ascending name order. `status` filters by
+        computed status; any other value, or no value, returns every named row. `cursor` is the
+        `name` of the last record on the previous page; the response carries the next `cursor`
+        when the page is not empty.
+
+        Before any ledger has been ingested, or when the process has no domains store attached
+        (the `serve` process also mounts this route but never attaches one), the response is
+        `{"indexed": false, "domain": null}` with status 200.
+      parameters:
+        - name: address
+          in: query
+          required: false
+          description: Stellar account (`G...`) or contract (`C...`) address to reverse look up. Matched exactly.
+          schema:
+            type: string
+          example: GAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAWHF
+        - name: status
+          in: query
+          required: false
+          description: >-
+            List mode: `active`, `expired`, or `revoked` filters by computed status; anything else
+            (including `all` or omitted) returns all named rows. Reverse lookup mode: `all` includes
+            expired and revoked rows; anything else returns active rows only.
+          schema:
+            type: string
+            enum: [active, expired, revoked, all]
+        - $ref: '#/components/parameters/DomainLimit'
+        - name: cursor
+          in: query
+          required: false
+          description: List mode only. The `cursor` value from the previous page (the last domain name). Only names greater than it are returned.
+          schema:
+            type: string
+          example: alice.xlm
+      responses:
+        '200':
+          description: Domains envelope. Returned for results, empty results, and the not-yet-indexed state.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DomainsListEnvelope'
+              examples:
+                list:
+                  summary: List page
+                  value:
+                    indexed: true
+                    domain: null
+                    domains:
+                      - name: alice.xlm
+                        owner: GBKPF4URAGUGPBFKQNMDDD4IY5BRRXRK2VEBULJEMVULCCODND436NIO
+                        address: GBKPF4URAGUGPBFKQNMDDD4IY5BRRXRK2VEBULJEMVULCCODND436NIO
+                        target_type: account
+                        registered_at: '2026-01-01T00:00:00Z'
+                        expires_at: '2027-01-01T00:00:00Z'
+                        status: active
+                        last_event_ledger: 51234567
+                      - name: swap.xlm
+                        owner: GBKPF4URAGUGPBFKQNMDDD4IY5BRRXRK2VEBULJEMVULCCODND436NIO
+                        address: CAG5LRYQ5JVEUI5TEID72EYOVX44TTUJT5BQR2J6J77FH65PCCFAJDDH
+                        target_type: contract
+                        registered_at: '2026-02-10T08:30:00Z'
+                        expires_at: '2027-02-10T08:30:00Z'
+                        status: active
+                        last_event_ledger: 51298811
+                    cursor: swap.xlm
+                reverseLookup:
+                  summary: Reverse lookup by address
+                  value:
+                    indexed: true
+                    domain:
+                      name: alice.xlm
+                      owner: GBKPF4URAGUGPBFKQNMDDD4IY5BRRXRK2VEBULJEMVULCCODND436NIO
+                      address: GBKPF4URAGUGPBFKQNMDDD4IY5BRRXRK2VEBULJEMVULCCODND436NIO
+                      target_type: account
+                      registered_at: '2026-01-01T00:00:00Z'
+                      expires_at: '2027-01-01T00:00:00Z'
+                      status: active
+                      last_event_ledger: 51234567
+                    domains:
+                      - name: alice.xlm
+                        owner: GBKPF4URAGUGPBFKQNMDDD4IY5BRRXRK2VEBULJEMVULCCODND436NIO
+                        address: GBKPF4URAGUGPBFKQNMDDD4IY5BRRXRK2VEBULJEMVULCCODND436NIO
+                        target_type: account
+                        registered_at: '2026-01-01T00:00:00Z'
+                        expires_at: '2027-01-01T00:00:00Z'
+                        status: active
+                        last_event_ledger: 51234567
+                notIndexed:
+                  $ref: '#/components/examples/DomainsNotIndexed'
+        '500':
+          $ref: '#/components/responses/DomainsServerError'
+
+  /v1/domains/{name}:
+    servers:
+      - url: http://localhost:9090
+        description: '`live` process (`HTTP_ADDR` or `METRICS_ADDR`).'
+    get:
+      tags: [Domains]
+      operationId: resolveDomain
+      summary: Resolve a domain by name
+      description: >-
+        Returns the current record for a fully-qualified name. The name is lowercased before lookup.
+        An unknown name returns 200 with `domain: null`, not 404. Expired and revoked names are still
+        returned, with their computed `status`.
+      parameters:
+        - $ref: '#/components/parameters/DomainName'
+      responses:
+        '200':
+          description: Domain envelope.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DomainEnvelope'
+              examples:
+                found:
+                  summary: Name resolves
+                  value:
+                    indexed: true
+                    domain:
+                      name: alice.xlm
+                      owner: GBKPF4URAGUGPBFKQNMDDD4IY5BRRXRK2VEBULJEMVULCCODND436NIO
+                      address: GAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAWHF
+                      target_type: account
+                      registered_at: '2026-01-01T00:00:00Z'
+                      expires_at: '2027-01-01T00:00:00Z'
+                      status: active
+                      last_event_ledger: 51234567
+                unknown:
+                  summary: Name not registered
+                  value:
+                    indexed: true
+                    domain: null
+                notIndexed:
+                  $ref: '#/components/examples/DomainsNotIndexed'
+        '500':
+          $ref: '#/components/responses/DomainsServerError'
+
+  /v1/domains/{name}/events:
+    servers:
+      - url: http://localhost:9090
+        description: '`live` process (`HTTP_ADDR` or `METRICS_ADDR`).'
+    get:
+      tags: [Domains]
+      operationId: listDomainEvents
+      summary: Domain event history
+      description: >-
+        Returns registry events for a domain, ordered by ledger sequence ascending (oldest first).
+        The name is lowercased before lookup. When the name is unknown or has no events, `events`
+        is omitted from the body.
+      parameters:
+        - $ref: '#/components/parameters/DomainName'
+        - $ref: '#/components/parameters/DomainLimit'
+      responses:
+        '200':
+          description: Events envelope.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DomainEventsEnvelope'
+              examples:
+                history:
+                  summary: Register then renew
+                  value:
+                    indexed: true
+                    domain: null
+                    events:
+                      - name: alice.xlm
+                        event_type: register
+                        owner: GBKPF4URAGUGPBFKQNMDDD4IY5BRRXRK2VEBULJEMVULCCODND436NIO
+                        address: GBKPF4URAGUGPBFKQNMDDD4IY5BRRXRK2VEBULJEMVULCCODND436NIO
+                        expires_at: '2026-06-01T00:00:00Z'
+                        transaction_hash: 3389e9f0f1a65f19736cacf544c2e825313e8447f569233bb8db39aa607c8889
+                        ledger_sequence: 51234567
+                        created_at: '2025-06-01T00:00:05Z'
+                      - name: alice.xlm
+                        event_type: renew
+                        expires_at: '2027-06-01T00:00:00Z'
+                        transaction_hash: 9f2c4e1b7a0d3c8e5f6a1b2c3d4e5f60718293a4b5c6d7e8f9011a2b3c4d5e6f
+                        ledger_sequence: 56012345
+                        created_at: '2026-05-20T14:02:11Z'
+                notIndexed:
+                  $ref: '#/components/examples/DomainsNotIndexed'
+        '500':
+          $ref: '#/components/responses/DomainsServerError'
+
+  /v1/verify:
+    servers:
+      - url: http://localhost:9090
+        description: '`live` process (`HTTP_ADDR` or `METRICS_ADDR`).'
+      - url: http://localhost:8080
+        description: '`serve` process (`API_ADDR`). It also mounts the verification routes with storage attached.'
+    post:
+      tags: [Verification]
+      operationId: submitVerification
+      summary: Submit contract source for verification
+      description: |
+        Records a verification submission for a deployed contract. `contractId` must resolve to a
+        wasm hash the indexer has already observed, and that wasm hash must have indexed contract
+        code. The record is keyed by wasm hash, so submissions for different contract IDs that share
+        identical bytecode share one verification subject.
+
+        **The build pipeline is not implemented yet.** Every accepted submission is stored with
+        status `pending` and stays there. Treat `pending` as "not yet verified", never as a mismatch
+        or a failure.
+
+        There is no authentication and no check that the submitter controls the contract. The route
+        is rate limited per client IP to 10 requests per fixed one-minute window. The IP is taken
+        from the TCP connection (`X-Forwarded-For` is not trusted). The limit is checked before any
+        other validation, and no `Retry-After` header is sent.
+
+        Validation, all answered with 400:
+        - the body must be valid JSON and at most 11 MiB in total;
+        - `files` must have between 1 and 500 entries, each at most 1 MiB, totalling at most 10 MiB;
+        - file paths must be relative, non-empty, at most 1024 characters, contain no NUL byte, no
+          leading `/` or `\`, no Windows drive prefix (`C:`), and must not escape the tree with `..`.
+          Backslashes are converted to `/` and paths are cleaned before storage;
+        - `contractId` and `network` are required;
+        - metadata fields must fit their column widths (see the schema).
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/VerificationSubmission'
+            example:
+              contractId: CAG5LRYQ5JVEUI5TEID72EYOVX44TTUJT5BQR2J6J77FH65PCCFAJDDH
+              network: testnet
+              repositoryUrl: https://github.com/example-org/soroban-router
+              gitRef: main
+              gitCommit: 4f1c2a9e8b7d6c5f4e3d2c1b0a9f8e7d6c5b4a39
+              rustVersion: 1.79.0
+              sorobanSdkVersion: 21.0.0
+              buildProfile:
+                profile: release
+              files:
+                Cargo.toml: |
+                  [package]
+                  name = "router"
+                  version = "0.1.0"
+                src/lib.rs: |
+                  #![no_std]
+                  use soroban_sdk::{contract, contractimpl};
+      responses:
+        '202':
+          description: Submission recorded. The body is the created verification record, with status `pending`.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/VerificationRecord'
+              example:
+                id: 42
+                wasmHash: e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855
+                contractId: CAG5LRYQ5JVEUI5TEID72EYOVX44TTUJT5BQR2J6J77FH65PCCFAJDDH
+                network: testnet
+                repositoryUrl: https://github.com/example-org/soroban-router
+                gitRef: main
+                gitCommit: 4f1c2a9e8b7d6c5f4e3d2c1b0a9f8e7d6c5b4a39
+                rustVersion: 1.79.0
+                sorobanSdkVersion: 21.0.0
+                status: pending
+                submittedAt: '2026-10-16T12:00:00.000Z'
+        '400':
+          description: Invalid body, missing required field, or a limit was exceeded.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              examples:
+                invalidJson:
+                  value:
+                    error: invalid JSON body
+                noFiles:
+                  value:
+                    error: at least one source file is required
+                tooManyFiles:
+                  value:
+                    error: 'too many files: 501 exceeds limit of 500'
+                badPath:
+                  value:
+                    error: 'invalid file path: "../etc/passwd"'
+                fileTooLarge:
+                  value:
+                    error: file "src/lib.rs" exceeds per-file limit of 1048576 bytes
+                totalTooLarge:
+                  value:
+                    error: submission exceeds total size limit of 10485760 bytes
+                missingContract:
+                  value:
+                    error: contractId is required
+                missingNetwork:
+                  value:
+                    error: network is required
+                fieldTooLong:
+                  value:
+                    error: gitRef exceeds max length of 256
+        '404':
+          description: The contract ID is unknown to the indexer, or its wasm hash has no indexed contract code.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              examples:
+                unknownContract:
+                  value:
+                    error: 'unknown contractId: no indexed wasm_hash for this contract'
+                noCode:
+                  value:
+                    error: no indexed contract_code for this contract's wasm_hash
+        '429':
+          description: More than 10 submissions from this IP in the current one-minute window.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              example:
+                error: rate limit exceeded, try again later
+        '500':
+          description: Storage failure while resolving the contract or recording the submission.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              examples:
+                resolve:
+                  value:
+                    error: failed to resolve contract
+                lookup:
+                  value:
+                    error: failed to look up contract code
+                record:
+                  value:
+                    error: failed to record verification submission
+                load:
+                  value:
+                    error: failed to load submitted verification
+        '503':
+          $ref: '#/components/responses/VerificationUnavailable'
+
+  /v1/verify/contract/{contractId}:
+    servers:
+      - url: http://localhost:9090
+        description: '`live` process (`HTTP_ADDR` or `METRICS_ADDR`).'
+      - url: http://localhost:8080
+        description: '`serve` process (`API_ADDR`).'
+    get:
+      tags: [Verification]
+      operationId: getVerificationByContract
+      summary: Look up verification by contract ID
+      description: >-
+        Resolves the contract to its wasm hash and returns the most relevant verification for that
+        hash: a `verified` record if one exists, regardless of later submissions, otherwise the most
+        recently submitted record. When nothing has been submitted, returns an `unverified` stub.
+        Since the build pipeline is not implemented yet, records currently stay `pending`.
+      parameters:
+        - name: contractId
+          in: path
+          required: true
+          description: Soroban contract address (`C...`). Matched exactly, not case-folded.
+          schema:
+            type: string
+          example: CAG5LRYQ5JVEUI5TEID72EYOVX44TTUJT5BQR2J6J77FH65PCCFAJDDH
+      responses:
+        '200':
+          $ref: '#/components/responses/VerificationLookup'
+        '404':
+          description: The contract ID is unknown to the indexer.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              example:
+                error: unknown contractId
+        '500':
+          description: Storage failure.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              examples:
+                resolve:
+                  value:
+                    error: failed to resolve contract
+                load:
+                  value:
+                    error: failed to load verification
+        '503':
+          $ref: '#/components/responses/VerificationUnavailable'
+
+  /v1/verify/wasm/{wasmHash}:
+    servers:
+      - url: http://localhost:9090
+        description: '`live` process (`HTTP_ADDR` or `METRICS_ADDR`).'
+      - url: http://localhost:8080
+        description: '`serve` process (`API_ADDR`).'
+    get:
+      tags: [Verification]
+      operationId: getVerificationByWasmHash
+      summary: Look up verification by wasm hash
+      description: >-
+        Returns the most relevant verification for the wasm hash (same precedence as the contract
+        lookup), or an `unverified` stub with 200 when none exists. Unknown hashes are not an error.
+        Since the build pipeline is not implemented yet, records currently stay `pending`.
+      parameters:
+        - $ref: '#/components/parameters/WasmHash'
+      responses:
+        '200':
+          $ref: '#/components/responses/VerificationLookup'
+        '500':
+          description: Storage failure.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              example:
+                error: failed to load verification
+        '503':
+          $ref: '#/components/responses/VerificationUnavailable'
+
+  /v1/verify/wasm/{wasmHash}/source:
+    servers:
+      - url: http://localhost:9090
+        description: '`live` process (`HTTP_ADDR` or `METRICS_ADDR`).'
+      - url: http://localhost:8080
+        description: '`serve` process (`API_ADDR`).'
+    get:
+      tags: [Verification]
+      operationId: getVerificationSourceTree
+      summary: List submitted source files
+      description: >-
+        Lists the files (path and size, no content) of the wasm hash's most relevant submission,
+        sorted by path. When there is no submission, returns 200 with an empty `files` array.
+      parameters:
+        - $ref: '#/components/parameters/WasmHash'
+      responses:
+        '200':
+          description: Source tree.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SourceTree'
+              example:
+                wasmHash: e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855
+                files:
+                  - path: Cargo.toml
+                    bytes: 52
+                  - path: src/lib.rs
+                    bytes: 1873
+        '500':
+          description: Storage failure.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              example:
+                error: failed to list source files
+        '503':
+          $ref: '#/components/responses/VerificationUnavailable'
+
+  /v1/verify/wasm/{wasmHash}/source/{path}:
+    servers:
+      - url: http://localhost:9090
+        description: '`live` process (`HTTP_ADDR` or `METRICS_ADDR`).'
+      - url: http://localhost:8080
+        description: '`serve` process (`API_ADDR`).'
+    get:
+      tags: [Verification]
+      operationId: getVerificationSourceFile
+      summary: Get one submitted source file
+      description: >-
+        Returns one file's content from the wasm hash's most relevant submission. `path` is the rest
+        of the URL after `/source/` and may contain `/` separators (for example `src/lib.rs`); it must
+        match a stored path exactly.
+      parameters:
+        - $ref: '#/components/parameters/WasmHash'
+        - name: path
+          in: path
+          required: true
+          description: Relative file path as stored, may span several URL segments.
+          schema:
+            type: string
+          example: src/lib.rs
+      responses:
+        '200':
+          description: File content.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SourceFile'
+              example:
+                wasmHash: e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855
+                path: src/lib.rs
+                content: |
+                  #![no_std]
+                  use soroban_sdk::{contract, contractimpl};
+                bytes: 54
+        '404':
+          description: The wasm hash has no verification, or the path was not part of its most relevant submission.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              example:
+                error: file not found
+        '500':
+          description: Storage failure.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              example:
+                error: failed to load source file
+        '503':
+          $ref: '#/components/responses/VerificationUnavailable'
+
+  /api/v1/analytics/timeseries:
+    servers:
+      - url: http://localhost:8080
+        description: '`serve` process (`API_ADDR`, default `:8080`).'
+    get:
+      tags: [Analytics]
+      operationId: getTimeSeries
+      summary: Network metric time series
+      description: >-
+        Returns one metric bucketed at the requested resolution over `[from, to)`. `from` is widened
+        to the start of the bucket containing it. The range may span at most 10000 buckets at the
+        chosen resolution. An empty result is an empty `data` array, never `null`. Each database query
+        is bounded by a 10 second timeout; a timeout is reported as a 500.
+      parameters:
+        - name: metric
+          in: query
+          required: true
+          description: |
+            - `tx_count`: transactions.
+            - `tx_volume`: native asset transfer volume, in XLM.
+            - `fee_classic`: total fees charged on classic transactions, in stroops.
+            - `fee_soroban`: total fees charged on Soroban transactions (not the resource fee alone), in stroops.
+            - `active_accounts`: distinct source accounts.
+            - `new_accounts`: `create_account` operations.
+            - `asset_supply`: net supply change (mints minus burns and clawbacks), in asset units.
+          schema:
+            $ref: '#/components/schemas/Metric'
+        - name: resolution
+          in: query
+          required: true
+          schema:
+            $ref: '#/components/schemas/Resolution'
+        - name: from
+          in: query
+          required: true
+          description: Range start, RFC 3339. Normalized to UTC. Must be before `to`.
+          schema:
+            type: string
+            format: date-time
+          example: '2026-08-20T19:00:00Z'
+        - name: to
+          in: query
+          required: true
+          description: Range end (exclusive), RFC 3339. Normalized to UTC.
+          schema:
+            type: string
+            format: date-time
+          example: '2026-08-20T23:00:00Z'
+        - name: asset
+          in: query
+          required: false
+          description: >-
+            Only valid with `metric=asset_supply`; any other metric returns 400. Narrows the series to
+            one asset: `native`, `CODE-ISSUER` (code of 1 to 12 letters or digits, issuer a `G...`
+            account), or a Soroban token contract ID (`C...`). Validation checks shape only, so an
+            unseen asset returns an empty series.
+          schema:
+            type: string
+          examples:
+            native:
+              value: native
+            classic:
+              value: USDC-GA5ZSEJYB37JRC5AVCIA5MOP4RHTM335X2KGX3IHOJAPP5RE34K4KZVN
+            contract:
+              value: CAS3J7GYLGXMF6TDJBBYYSE3HQ6BBSMLNUQ34T6TZMYMW2EVH34XOWMA
+      responses:
+        '200':
+          description: Time series.
+          headers:
+            Access-Control-Allow-Origin:
+              $ref: '#/components/headers/AccessControlAllowOrigin'
+            Vary:
+              $ref: '#/components/headers/Vary'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TimeSeriesResponse'
+              examples:
+                txCount:
+                  summary: Hourly transaction count
+                  value:
+                    metric: tx_count
+                    resolution: hourly
+                    from: '2026-08-20T19:00:00Z'
+                    to: '2026-08-20T23:00:00Z'
+                    data:
+                      - timestamp: '2026-08-20T19:00:00Z'
+                        value: 4821
+                      - timestamp: '2026-08-20T20:00:00Z'
+                        value: 5140
+                assetSupply:
+                  summary: Daily supply delta for one asset
+                  value:
+                    metric: asset_supply
+                    asset: USDC-GA5ZSEJYB37JRC5AVCIA5MOP4RHTM335X2KGX3IHOJAPP5RE34K4KZVN
+                    resolution: daily
+                    from: '2026-08-01T00:00:00Z'
+                    to: '2026-08-20T00:00:00Z'
+                    data:
+                      - timestamp: '2026-08-01T00:00:00Z'
+                        value: 12500
+                empty:
+                  summary: No data yet
+                  value:
+                    metric: new_accounts
+                    resolution: daily
+                    from: '2026-08-01T00:00:00Z'
+                    to: '2026-08-02T00:00:00Z'
+                    data: []
+        '400':
+          description: A parameter failed validation. The message names the parameter.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              examples:
+                badMetric:
+                  value:
+                    error: 'invalid parameter: metric "tx", want one of [tx_count tx_volume fee_classic fee_soroban active_accounts new_accounts asset_supply]'
+                missingFrom:
+                  value:
+                    error: 'invalid parameter: from is required (RFC 3339)'
+                badOrder:
+                  value:
+                    error: 'invalid parameter: from (2026-08-21T00:00:00Z) must be before to (2026-08-20T00:00:00Z)'
+                assetWrongMetric:
+                  value:
+                    error: 'invalid parameter: asset is only valid with metric=asset_supply'
+        '500':
+          $ref: '#/components/responses/AnalyticsInternalError'
+    options:
+      tags: [Analytics]
+      operationId: preflightTimeSeries
+      summary: CORS preflight
+      description: >-
+        Answers browser preflight requests for any path under `/api/v1/analytics/`. CORS headers are
+        set only when the request's `Origin` is allowed by `API_CORS_ORIGINS` (default `*`).
+      parameters:
+        - $ref: '#/components/parameters/Origin'
+      responses:
+        '204':
+          $ref: '#/components/responses/Preflight'
+
+  /api/v1/analytics/top:
+    servers:
+      - url: http://localhost:8080
+        description: '`serve` process (`API_ADDR`, default `:8080`).'
+    get:
+      tags: [Analytics]
+      operationId: getTopN
+      summary: Top-N ranking
+      description: >-
+        Ranks entities over a rolling window ending now, widened to the enclosing hour. An empty
+        result is an empty `data` array. Each database query is bounded by a 10 second timeout.
+      parameters:
+        - name: metric
+          in: query
+          required: true
+          description: |
+            - `contract_activity`: contracts by events emitted. `id` is the contract ID.
+            - `asset_transfers`: assets by transferred volume. `id` is `native`, `CODE-ISSUER`, or a token contract ID.
+            - `highest_fees`: transactions by fee charged, in stroops. `id` is the transaction hash.
+          schema:
+            $ref: '#/components/schemas/TopMetric'
+        - name: window
+          in: query
+          required: true
+          schema:
+            $ref: '#/components/schemas/Window'
+        - name: limit
+          in: query
+          required: false
+          description: Number of rows. Out of range or non-integer values return 400.
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+            default: 10
+      responses:
+        '200':
+          description: Ranking.
+          headers:
+            Access-Control-Allow-Origin:
+              $ref: '#/components/headers/AccessControlAllowOrigin'
+            Vary:
+              $ref: '#/components/headers/Vary'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TopResponse'
+              examples:
+                contractActivity:
+                  value:
+                    metric: contract_activity
+                    window: 24h
+                    data:
+                      - id: CAG5LRYQ5JVEUI5TEID72EYOVX44TTUJT5BQR2J6J77FH65PCCFAJDDH
+                        label: Soroswap Router
+                        value: 12043
+                        metadata:
+                          contract_type: 0
+                assetTransfers:
+                  value:
+                    metric: asset_transfers
+                    window: 7d
+                    data:
+                      - id: native
+                        label: native
+                        value: 1843920.5
+                        metadata:
+                          transfers: 90211
+                          decimals: 7
+                      - id: USDC-GA5ZSEJYB37JRC5AVCIA5MOP4RHTM335X2KGX3IHOJAPP5RE34K4KZVN
+                        label: USDC
+                        value: 250000.25
+                        metadata:
+                          issuer: GA5ZSEJYB37JRC5AVCIA5MOP4RHTM335X2KGX3IHOJAPP5RE34K4KZVN
+                          transfers: 4120
+                          decimals: 7
+                highestFees:
+                  value:
+                    metric: highest_fees
+                    window: 30d
+                    data:
+                      - id: 3389e9f0f1a65f19736cacf544c2e825313e8447f569233bb8db39aa607c8889
+                        label: 3389e9f0…607c8889
+                        value: 15000000
+                        metadata:
+                          account: GDQP2KPQGKIHYJGXNUIYOMHARUARCA7DJT5FO2FFOOKY3B2WSQHG4W37
+                          is_soroban: true
+        '400':
+          description: A parameter failed validation.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              examples:
+                badWindow:
+                  value:
+                    error: 'invalid parameter: window "1y", want one of [24h 7d 30d]'
+                badLimit:
+                  value:
+                    error: 'invalid parameter: limit 500 out of range [1, 100]'
+        '500':
+          $ref: '#/components/responses/AnalyticsInternalError'
+    options:
+      tags: [Analytics]
+      operationId: preflightTopN
+      summary: CORS preflight
+      description: Same preflight handler as the time-series route.
+      parameters:
+        - $ref: '#/components/parameters/Origin'
+      responses:
+        '204':
+          $ref: '#/components/responses/Preflight'
+
+  /healthz:
+    get:
+      tags: [Health]
+      operationId: getHealth
+      summary: Readiness probe
+      description: >-
+        Served by both processes. Returns 200 when the database answers a ping within 2 seconds and
+        the live ingestion loop has completed a poll cycle within the last 2 minutes. The staleness
+        check only applies after the loop has ticked at least once in this process, so the `serve`
+        process reports database health only. Database error details are logged, never returned.
+      responses:
+        '200':
+          description: Healthy.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HealthStatus'
+              example:
+                status: ok
+        '503':
+          description: Database unreachable or pipeline not advancing.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HealthStatus'
+              examples:
+                database:
+                  value:
+                    status: unhealthy
+                    reason: database unreachable
+                pipeline:
+                  value:
+                    status: unhealthy
+                    reason: pipeline not advancing
+
+components:
+  parameters:
+    DomainName:
+      name: name
+      in: path
+      required: true
+      description: Fully-qualified domain name. Lowercased by the server before lookup.
+      schema:
+        type: string
+      example: alice.xlm
+    DomainLimit:
+      name: limit
+      in: query
+      required: false
+      description: >-
+        Maximum number of rows (list mode and event history). Values that are missing, not a plain
+        non-negative integer, zero, or above 200 fall back to 50. No 400 is returned.
+      schema:
+        type: integer
+        minimum: 1
+        maximum: 200
+        default: 50
+    WasmHash:
+      name: wasmHash
+      in: path
+      required: true
+      description: Hex-encoded SHA-256 of the contract wasm. Lowercased by the server before lookup.
+      schema:
+        type: string
+      example: e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855
+    Origin:
+      name: Origin
+      in: header
+      required: false
+      description: Browser origin, checked against `API_CORS_ORIGINS` (case-insensitive).
+      schema:
+        type: string
+      example: https://explorer.example.org
+
+  headers:
+    AccessControlAllowOrigin:
+      description: >-
+        `*` when the allow-list contains `*`, otherwise the request's `Origin` when it is on the list.
+        Absent when the origin is not allowed or the list is empty. Sent together with
+        `Access-Control-Allow-Methods: GET, OPTIONS`, `Access-Control-Allow-Headers: Accept, Content-Type`,
+        and `Access-Control-Max-Age: 86400`.
+      schema:
+        type: string
+    Vary:
+      description: '`Origin`, sent whenever the allow-list is not the wildcard.'
+      schema:
+        type: string
+
+  examples:
+    DomainsNotIndexed:
+      summary: Not indexed yet
+      description: No ledger has been ingested yet, or this process has no domains store. Clients should show an unavailable state, not an error.
+      value:
+        indexed: false
+        domain: null
+
+  responses:
+    DomainsServerError:
+      description: >-
+        Storage failure. The body is the domains envelope, not an error object. `indexed` is `false`
+        when the indexed check itself failed, `true` when the lookup after it failed.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/DomainsEnvelopeBase'
+          example:
+            indexed: true
+            domain: null
+    VerificationUnavailable:
+      description: The process has no verification store attached.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          example:
+            error: verification storage is not configured
+    VerificationLookup:
+      description: >-
+        The most relevant verification record, or an `unverified` stub when nothing has been
+        submitted for the wasm hash.
+      content:
+        application/json:
+          schema:
+            oneOf:
+              - $ref: '#/components/schemas/VerificationRecord'
+              - $ref: '#/components/schemas/UnverifiedStatus'
+          examples:
+            pending:
+              summary: Submitted, awaiting the build pipeline
+              value:
+                id: 42
+                wasmHash: e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855
+                contractId: CAG5LRYQ5JVEUI5TEID72EYOVX44TTUJT5BQR2J6J77FH65PCCFAJDDH
+                network: testnet
+                repositoryUrl: https://github.com/example-org/soroban-router
+                gitRef: main
+                gitCommit: 4f1c2a9e8b7d6c5f4e3d2c1b0a9f8e7d6c5b4a39
+                rustVersion: 1.79.0
+                sorobanSdkVersion: 21.0.0
+                status: pending
+                submittedAt: '2026-10-16T12:00:00.000Z'
+            unverified:
+              summary: Nothing submitted
+              value:
+                wasmHash: e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855
+                verified: false
+                status: unverified
+    AnalyticsInternalError:
+      description: Query failed or timed out. Details are logged server-side only.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          example:
+            error: internal error
+    Preflight:
+      description: Preflight answered. No body.
+      headers:
+        Access-Control-Allow-Origin:
+          $ref: '#/components/headers/AccessControlAllowOrigin'
+        Access-Control-Allow-Methods:
+          description: '`GET, OPTIONS` when the origin is allowed.'
+          schema:
+            type: string
+        Access-Control-Allow-Headers:
+          description: '`Accept, Content-Type` when the origin is allowed.'
+          schema:
+            type: string
+        Access-Control-Max-Age:
+          description: '`86400` when the origin is allowed.'
+          schema:
+            type: string
+        Vary:
+          $ref: '#/components/headers/Vary'
+
+  schemas:
+    Error:
+      type: object
+      description: Error body used by the verification and analytics endpoints and the rate limiter.
+      required: [error]
+      properties:
+        error:
+          type: string
+          description: Human-readable message.
+      example:
+        error: file not found
+
+    HealthStatus:
+      type: object
+      required: [status]
+      properties:
+        status:
+          type: string
+          enum: [ok, unhealthy]
+        reason:
+          type: string
+          description: Present only when `status` is `unhealthy`.
+          enum: [database unreachable, pipeline not advancing]
+
+    DomainStatus:
+      type: string
+      description: >-
+        Computed at read time. `revoked`: the registry evicted the name. `expired`: `expires_at` is in
+        the past and the name was not revoked. `active`: otherwise.
+      enum: [active, expired, revoked]
+
+    DomainRecord:
+      type: object
+      required: [name, owner, address, target_type, registered_at, expires_at, status, last_event_ledger]
+      properties:
+        name:
+          type: string
+          description: Fully-qualified lowercase name.
+          example: alice.xlm
+        owner:
+          type: string
+          description: Owner account.
+          example: GBKPF4URAGUGPBFKQNMDDD4IY5BRRXRK2VEBULJEMVULCCODND436NIO
+        address:
+          type: string
+          description: Current resolved address (account or contract).
+          example: GAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAWHF
+        target_type:
+          type: string
+          description: '`contract` when `address` starts with `C`, otherwise `account`.'
+          enum: [account, contract]
+        registered_at:
+          type: string
+          description: RFC 3339 UTC timestamp, or an empty string when unknown.
+          example: '2026-01-01T00:00:00Z'
+        expires_at:
+          type: string
+          description: RFC 3339 UTC timestamp, or an empty string when unknown.
+          example: '2027-01-01T00:00:00Z'
+        status:
+          $ref: '#/components/schemas/DomainStatus'
+        last_event_ledger:
+          type: integer
+          format: int64
+          minimum: 0
+          description: Ledger sequence of the last event that changed this record.
+          example: 51234567
+
+    DomainEventRecord:
+      type: object
+      required: [name, event_type, transaction_hash, ledger_sequence, created_at]
+      properties:
+        name:
+          type: string
+          example: alice.xlm
+        event_type:
+          type: string
+          enum: [register, transfer, renew, claim, revoke]
+        owner:
+          type: string
+          description: Omitted when the event did not carry an owner.
+          example: GBKPF4URAGUGPBFKQNMDDD4IY5BRRXRK2VEBULJEMVULCCODND436NIO
+        address:
+          type: string
+          description: Resolved address carried by the event. Omitted when absent.
+          example: GBKPF4URAGUGPBFKQNMDDD4IY5BRRXRK2VEBULJEMVULCCODND436NIO
+        expires_at:
+          type: string
+          description: RFC 3339 UTC timestamp. Omitted when the event did not set an expiry.
+          example: '2027-01-01T00:00:00Z'
+        transaction_hash:
+          type: string
+          example: 3389e9f0f1a65f19736cacf544c2e825313e8447f569233bb8db39aa607c8889
+        ledger_sequence:
+          type: integer
+          format: int64
+          minimum: 0
+          example: 51234567
+        created_at:
+          type: string
+          description: RFC 3339 UTC timestamp.
+          example: '2025-06-01T00:00:05Z'
+
+    DomainsEnvelopeBase:
+      type: object
+      description: >-
+        Common domains envelope. `domain` is always present (possibly `null`). `domains`, `events`, and
+        `cursor` are omitted when empty, including on not-indexed responses.
+      required: [indexed, domain]
+      properties:
+        indexed:
+          type: boolean
+          description: '`false` until at least one ledger has been ingested, or when no domains store is attached.'
+        domain:
+          description: Single record, or `null`.
+          oneOf:
+            - $ref: '#/components/schemas/DomainRecord'
+            - type: 'null'
+
+    DomainEnvelope:
+      description: Resolve-by-name response.
+      allOf:
+        - $ref: '#/components/schemas/DomainsEnvelopeBase'
+
+    DomainsListEnvelope:
+      description: List and reverse lookup response.
+      allOf:
+        - $ref: '#/components/schemas/DomainsEnvelopeBase'
+        - type: object
+          properties:
+            domains:
+              type: array
+              description: Omitted when there are no matches.
+              items:
+                $ref: '#/components/schemas/DomainRecord'
+            cursor:
+              type: string
+              description: List mode only. Name of the last record on this page. Omitted when the page is empty.
+              example: swap.xlm
+
+    DomainEventsEnvelope:
+      description: Event history response. `domain` is always `null` here.
+      allOf:
+        - $ref: '#/components/schemas/DomainsEnvelopeBase'
+        - type: object
+          properties:
+            events:
+              type: array
+              description: Oldest first. Omitted when there are no events.
+              items:
+                $ref: '#/components/schemas/DomainEventRecord'
+
+    VerificationStatus:
+      type: string
+      description: >-
+        `pending`: submitted, awaiting the build pipeline. `verified`, `mismatch`, and `failed` are the
+        terminal states the pipeline will set once it exists. Today every record is `pending`.
+      enum: [pending, verified, mismatch, failed]
+
+    VerificationSubmission:
+      type: object
+      required: [contractId, network, files]
+      properties:
+        contractId:
+          type: string
+          maxLength: 56
+          description: Deployed contract address (`C...`). Must already be indexed.
+          example: CAG5LRYQ5JVEUI5TEID72EYOVX44TTUJT5BQR2J6J77FH65PCCFAJDDH
+        network:
+          type: string
+          maxLength: 16
+          description: Network label stored with the record. Not validated beyond length.
+          example: testnet
+        repositoryUrl:
+          type: string
+          maxLength: 1024
+          example: https://github.com/example-org/soroban-router
+        gitRef:
+          type: string
+          maxLength: 256
+          example: main
+        gitCommit:
+          type: string
+          maxLength: 64
+          example: 4f1c2a9e8b7d6c5f4e3d2c1b0a9f8e7d6c5b4a39
+        rustVersion:
+          type: string
+          maxLength: 64
+          example: 1.79.0
+        sorobanSdkVersion:
+          type: string
+          maxLength: 64
+          example: 21.0.0
+        buildProfile:
+          description: Arbitrary JSON build settings, stored as given. Not returned by any read endpoint.
+        files:
+          type: object
+          description: Map of relative file path to file content. 1 to 500 entries, at most 1 MiB each and 10 MiB in total.
+          minProperties: 1
+          maxProperties: 500
+          propertyNames:
+            maxLength: 1024
+          additionalProperties:
+            type: string
+
+    VerificationRecord:
+      type: object
+      description: A stored submission. Optional fields are omitted, never `null`, when unset.
+      required: [id, wasmHash, contractId, network, status, submittedAt]
+      properties:
+        id:
+          type: integer
+          format: int64
+          example: 42
+        wasmHash:
+          type: string
+          description: Hex wasm hash the submission is keyed by.
+          example: e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855
+        contractId:
+          type: string
+          description: Contract ID given at submission time.
+          example: CAG5LRYQ5JVEUI5TEID72EYOVX44TTUJT5BQR2J6J77FH65PCCFAJDDH
+        network:
+          type: string
+          example: testnet
+        repositoryUrl:
+          type: string
+        gitRef:
+          type: string
+        gitCommit:
+          type: string
+        rustVersion:
+          type: string
+        sorobanSdkVersion:
+          type: string
+        status:
+          $ref: '#/components/schemas/VerificationStatus'
+        computedWasmHash:
+          type: string
+          description: Hash produced by the build. Not set while the pipeline is unimplemented.
+        failureReason:
+          type: string
+          description: Why the build failed. Not set while the pipeline is unimplemented.
+        submittedAt:
+          type: string
+          format: date-time
+          description: UTC, millisecond precision.
+          example: '2026-10-16T12:00:00.000Z'
+        completedAt:
+          type: string
+          format: date-time
+          description: UTC, millisecond precision. Not set while the pipeline is unimplemented.
+
+    UnverifiedStatus:
+      type: object
+      description: Returned with 200 when no submission exists for the wasm hash.
+      required: [wasmHash, verified, status]
+      properties:
+        wasmHash:
+          type: string
+          example: e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855
+        verified:
+          type: boolean
+          const: false
+        status:
+          type: string
+          const: unverified
+
+    SourceFileMeta:
+      type: object
+      required: [path, bytes]
+      properties:
+        path:
+          type: string
+          example: src/lib.rs
+        bytes:
+          type: integer
+          format: int32
+          example: 1873
+
+    SourceTree:
+      type: object
+      required: [wasmHash, files]
+      properties:
+        wasmHash:
+          type: string
+          description: The requested hash, lowercased.
+        files:
+          type: array
+          description: Sorted by path. Empty when there is no submission.
+          items:
+            $ref: '#/components/schemas/SourceFileMeta'
+
+    SourceFile:
+      type: object
+      required: [wasmHash, path, content, bytes]
+      properties:
+        wasmHash:
+          type: string
+          description: The requested hash, lowercased.
+        path:
+          type: string
+        content:
+          type: string
+        bytes:
+          type: integer
+          format: int32
+
+    Metric:
+      type: string
+      enum: [tx_count, tx_volume, fee_classic, fee_soroban, active_accounts, new_accounts, asset_supply]
+
+    Resolution:
+      type: string
+      description: Bucket width. `hourly` is 1 hour, `daily` 1 day, `weekly` 1 week.
+      enum: [hourly, daily, weekly]
+
+    TopMetric:
+      type: string
+      enum: [contract_activity, asset_transfers, highest_fees]
+
+    Window:
+      type: string
+      description: Rolling look-back from the time of the request.
+      enum: [24h, 7d, 30d]
+
+    TimeSeriesPoint:
+      type: object
+      required: [timestamp, value]
+      properties:
+        timestamp:
+          type: string
+          format: date-time
+          description: Bucket start, UTC.
+        value:
+          type: number
+          format: double
+
+    TimeSeriesResponse:
+      type: object
+      required: [metric, resolution, from, to, data]
+      properties:
+        metric:
+          $ref: '#/components/schemas/Metric'
+        asset:
+          type: string
+          description: Present only when the request carried `asset`, echoed in canonical form.
+        resolution:
+          $ref: '#/components/schemas/Resolution'
+        from:
+          type: string
+          format: date-time
+          description: Requested start, normalized to UTC.
+        to:
+          type: string
+          format: date-time
+          description: Requested end, normalized to UTC.
+        data:
+          type: array
+          description: Never `null`; empty when there is no data.
+          items:
+            $ref: '#/components/schemas/TimeSeriesPoint'
+
+    TopEntryMetadata:
+      type: object
+      description: |
+        Extra context per metric. Keys with no value are dropped, and the whole object is omitted when empty.
+        - `contract_activity`: `contract_type` (integer), `token_symbol` (string).
+        - `asset_transfers`: `issuer` (string), `transfers` (integer), `decimals` (integer).
+        - `highest_fees`: `account` (string), `is_soroban` (boolean).
+      properties:
+        contract_type:
+          type: integer
+        token_symbol:
+          type: string
+        issuer:
+          type: string
+        transfers:
+          type: integer
+        decimals:
+          type: integer
+        account:
+          type: string
+        is_soroban:
+          type: boolean
+      additionalProperties: true
+
+    TopEntry:
+      type: object
+      required: [id, label, value]
+      properties:
+        id:
+          type: string
+          description: Contract ID, asset identifier, or transaction hash, depending on the metric.
+        label:
+          type: string
+          description: >-
+            Display label. Contract label or token name for contracts, asset code or symbol for assets,
+            and a shortened hash (first 8 and last 8 characters) for transactions.
+        value:
+          type: number
+          format: double
+        metadata:
+          $ref: '#/components/schemas/TopEntryMetadata'
+
+    TopResponse:
+      type: object
+      required: [metric, window, data]
+      properties:
+        metric:
+          $ref: '#/components/schemas/TopMetric'
+        window:
+          $ref: '#/components/schemas/Window'
+        data:
+          type: array
+          description: Never `null`; empty when there is no data.
+          items:
+            $ref: '#/components/schemas/TopEntry'

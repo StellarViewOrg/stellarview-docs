@@ -1,0 +1,108 @@
+---
+title: "Running the indexer"
+description: "Run StellarView Indexer locally: infrastructure, migrations, live ingestion, backfills, and the read API."
+---
+
+## Prerequisites
+
+- Go 1.25 or later
+- Docker with Compose
+
+## Set up
+
+<Steps>
+  <Step title="Start the infrastructure">
+    ```bash
+    docker compose -f infra/docker-compose.yml up -d
+    ```
+    PostgreSQL with TimescaleDB listens on `54320`, Redis on `63790`, and Typesense on `18108`.
+  </Step>
+  <Step title="Build">
+    ```bash
+    make build
+    ```
+  </Step>
+  <Step title="Apply migrations">
+    ```bash
+    ./bin/indexer migrate
+    ```
+    Migrations are embedded in the binary. Running it again when you're up to date is a no-op.
+  </Step>
+</Steps>
+
+## Live ingestion
+
+```bash
+RPC_ENDPOINT=https://soroban-testnet.stellar.org NETWORK=testnet ./bin/indexer live
+```
+
+Stop with `Ctrl+C`. The indexer shuts down cleanly and picks up from the last ingested ledger on the next start.
+
+<Warning>
+  Set `NETWORK` to match `RPC_ENDPOINT`. It defaults to `public`, and a mismatch computes the wrong transaction hashes.
+</Warning>
+
+## Backfilling history
+
+<Tabs>
+  <Tab title="From RPC (any network)">
+    ```bash
+    RPC_ENDPOINT=https://soroban-testnet.stellar.org NETWORK=testnet \
+      ./bin/indexer backfill --start 1288000 --end 1288100
+    ```
+    If it's interrupted, run it again with `--start` set to the last ledger that finished.
+  </Tab>
+  <Tab title="From the S3 data lake (pubnet)">
+    ```bash
+    ./bin/indexer s3backfill --start 3 --end 1000000
+    ```
+    Reads the public Stellar data lake anonymously, from ledger 3 to the current tip. No `RPC_ENDPOINT` and no AWS credentials. Raise `WORKER_COUNT` (default `8`) for more throughput:
+    ```bash
+    WORKER_COUNT=16 ./bin/indexer s3backfill --start 3 --end 5000000
+    ```
+  </Tab>
+</Tabs>
+
+## Serving analytics
+
+The analytics API runs as its own process so dashboard queries never compete with ingestion for database connections.
+
+```bash
+API_ADDR=:8080 ./bin/indexer serve
+```
+
+The continuous aggregates start empty. Populate them once from what you've already ingested:
+
+```bash
+./bin/indexer analytics-backfill
+./bin/indexer analytics-backfill --from 2026-01-01T00:00:00Z
+```
+
+<Note>
+  Run `analytics-backfill` again after any `backfill` or `s3backfill`. Those write history below the aggregates' watermark, which the refresh policy never revisits.
+</Note>
+
+## Make targets
+
+| Command | Purpose |
+| --- | --- |
+| `make build` | Compile to `bin/indexer` |
+| `make migrate` | Apply pending migrations |
+| `make run-live` | Live ingestion (needs `RPC_ENDPOINT`) |
+| `make run-serve` | Analytics read API, no ingestion |
+| `make test` | Run all tests |
+| `make lint` | `go vet` |
+| `make fmt` | Format the code |
+
+## Resetting
+
+To wipe ingested data and start over:
+
+```bash
+docker compose -f infra/docker-compose.yml exec postgres psql -U explorer -d stellar_explorer -c "
+  TRUNCATE ledgers, transactions, operations, effects, accounts, contracts,
+    contract_events, token_events, assets, trades, network_stats, ingestion_state,
+    domains, domain_events CASCADE;"
+```
+
+Truncating leaves the analytics aggregates in place. To reset only the ingestion cursor and keep the data, delete the rows in `ingestion_state` instead.

@@ -1,0 +1,62 @@
+---
+title: "Development setup"
+description: "Set up StellarView Explorer for local development."
+---
+
+## Prerequisites
+
+- [Bun](https://bun.sh), used as package manager and runtime.
+- [Git](https://git-scm.com).
+
+The explorer talks to public Horizon and Stellar RPC endpoints, so you don't need Docker or a database to work on it.
+
+## Get running
+
+<Steps>
+  <Step title="Fork and clone">
+    ```bash
+    git clone https://github.com/<your-user>/stellarview-explorer.git
+    cd stellarview-explorer
+    ```
+  </Step>
+  <Step title="Install">
+    ```bash
+    bun install
+    ```
+  </Step>
+  <Step title="Configure the environment">
+    ```bash
+    cp apps/explorer-web/.env.local.example apps/explorer-web/.env.local
+    ```
+    Every variable is optional for local work. See the table below.
+  </Step>
+  <Step title="Start the dev server">
+    ```bash
+    bun run dev
+    ```
+    The app runs at [http://localhost:3000](http://localhost:3000).
+  </Step>
+</Steps>
+
+## Environment variables
+
+| Variable | Purpose |
+| --- | --- |
+| `NEXT_PUBLIC_RPC_URL` | Stellar RPC endpoint for contract simulation and live state. |
+| `NEXT_PUBLIC_APP_URL` | Public URL of the app, used for absolute links and exports. |
+| `NEXT_PUBLIC_INDEXER_URL` | Indexer API base URL. Unset means analytics, the domains browser, and verification show "not available yet". |
+| `NEXT_PUBLIC_DOMAINS_REGISTRY_CONTRACT_ID_TESTNET` | Soroban Domains registry on testnet. Mainnet is pinned in code, and Futurenet has no deployment. |
+| `NEXT_PUBLIC_UMAMI_WEBSITE_ID` | Optional privacy-friendly analytics. No script is injected when unset. |
+
+## Commands
+
+Run these from the repository root.
+
+| Command | Purpose |
+| --- | --- |
+| `bun run dev` | Start the dev server on port 3000. |
+| `bun run build` | Production build. |
+| `bun run lint` | ESLint. |
+| `bun run format` | Format with Prettier. |
+| `bun run format:check:web` | Check formatting, as CI does. |
+| `bun run test` | Run the test suite once. |

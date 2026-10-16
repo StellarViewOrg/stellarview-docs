@@ -1,0 +1,19 @@
+# Explorer URL structure under the Next.js App Router.
+direction: down
+
+root: "src/app/"
+locale: "[locale]" {
+  note: "en, es, pt, fr, de, zh, ja, ko, it" {shape: text}
+}
+network: "[network]" {
+  note: "public, testnet, futurenet" {shape: text}
+}
+explorer: "(explorer) route group" {
+  pages: "tx, ledger, account, asset, contract, domain, pair, liquidity-pool, analytics, search, watchlist" {shape: text}
+}
+example: "/en/public/tx/<hash>" {shape: page}
+
+root -> locale
+locale -> network
+network -> explorer
+explorer -> example: example URL

@@ -1,0 +1,69 @@
+---
+title: "Data modes"
+description: "Choose between RPC, hybrid, and indexer modes in StellarView TUI, and set up the TUI indexer backend."
+---
+
+Every lookup in the TUI resolves to a single data source, and the header tells you which one answered.
+
+<CardGroup cols={3}>
+  <Card title="RPC" icon="plug">
+    Default. Horizon and Stellar RPC only. No local services.
+  </Card>
+  <Card title="Hybrid" icon="git-merge">
+    Prefers the TUI indexer and falls back to RPC when a path isn't indexed.
+  </Card>
+  <Card title="Indexer" icon="database">
+    Reads only from the TUI indexer.
+  </Card>
+</CardGroup>
+
+## RPC mode
+
+Good for quick lookups of ledgers, transactions, accounts, and contracts, and for a basic live feed. It composes Horizon (history, assets, operations) with Stellar RPC (contract state and Soroban metadata).
+
+Contract events are limited to the RPC retention window, about 24 hours. Persistent storage scans and full-text search need the indexer.
+
+## Hybrid mode
+
+Adds indexed search, entity lists, timelines, holders, full contract event history, and richer contract inspection. When the indexer can't serve something, the TUI falls back to RPC and labels the view so you know it's degraded.
+
+## Setting up the TUI indexer
+
+Hybrid mode expects the TUI indexer at `http://127.0.0.1:8081`, as set in `config/hybrid.testnet.json`.
+
+<Steps>
+  <Step title="Start the infrastructure">
+    ```bash
+    cd infra
+    docker compose -f docker-compose.tui-indexer.yml up -d
+    ```
+    This starts PostgreSQL, Redis, and Typesense.
+  </Step>
+  <Step title="Apply migrations">
+    ```bash
+    cd ../tui-indexer
+    make migrate
+    ```
+  </Step>
+  <Step title="Start the read API">
+    ```bash
+    make run-serve
+    ```
+  </Step>
+  <Step title="Ingest live data (optional)">
+    In another terminal:
+    ```bash
+    RPC_ENDPOINT=https://soroban-testnet.stellar.org NETWORK=testnet make run-live
+    ```
+  </Step>
+  <Step title="Run the TUI in hybrid mode">
+    ```bash
+    cd ../tui
+    make run-hybrid
+    ```
+  </Step>
+</Steps>
+
+<Tip>
+  For the streaming live feed, set `redis_url` on the active profile and keep the TUI indexer's live publisher running.
+</Tip>

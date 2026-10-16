@@ -1,0 +1,45 @@
+---
+title: "Routing"
+description: "How URLs are structured in StellarView Explorer with the Next.js App Router."
+---
+
+import { Diagram } from "/snippets/diagram.mdx";
+
+The explorer uses the Next.js App Router with two dynamic segments ahead of every page: the locale and the network.
+
+<Diagram name="routing" alt="src/app contains the locale segment, then the network segment, then the explorer route group with every page." />
+
+## URL pattern
+
+```text
+/[locale]/[network]/(explorer)/[page]/[...params]
+```
+
+For `/en/public/tx/abc123`:
+
+| Segment | Value | Purpose |
+| --- | --- | --- |
+| `[locale]` | `en` | Interface language: `en`, `es`, `pt`, `fr`, `de`, `zh`, `ja`, `ko`, or `it`. |
+| `[network]` | `public` | Network: `public`, `testnet`, or `futurenet`. |
+| `(explorer)` | none | Route group. Organizes pages without adding a URL segment. |
+| `[page]` | `tx` | Page type. |
+| `[...params]` | `abc123` | The entity identifier, here a transaction hash. |
+
+## Pages in the explorer group
+
+| List | Detail |
+| --- | --- |
+| `transactions/` | `tx/[hash]` |
+| `ledgers/` | `ledger/[sequence]` |
+| `accounts/` | `account/[id]` |
+| `assets/` | `asset/[slug]` |
+| `contracts/` | `contract/[id]` |
+| `domains/` | `domain/[name]` |
+| `pairs/` | `pair/[slug]` |
+| none | `liquidity-pool/[id]` |
+
+Plus `analytics/`, `search/`, `watchlist/`, and `learn/`.
+
+## Source
+
+[`apps/explorer-web/src/app/`](https://github.com/StellarViewOrg/stellarview-explorer/tree/main/apps/explorer-web/src/app)

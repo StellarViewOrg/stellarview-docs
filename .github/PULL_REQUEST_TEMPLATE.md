@@ -1,6 +1,6 @@
 ## What changes
 
-<!-- Which pages/sections does this touch, and what changed on them? -->
+<!-- Which pages or sections does this touch, and what changed on them? -->
 
 ## Why
 
@@ -8,7 +8,7 @@
 
 ## Checklist
 
-- [ ] Ran `bun run dev` and reviewed the affected pages locally
-- [ ] Ran `bun run build` with no errors or broken links
-- [ ] Internal links point to existing pages
-- [ ] Code samples (if any) were verified against the current version of the relevant repo
+- [ ] Ran `mint dev` and reviewed the affected pages in light and dark mode
+- [ ] `mint validate` and `mint broken-links` pass
+- [ ] New or changed pages exist in both English and Spanish, and are listed in `docs.json`
+- [ ] Commands and code samples were checked against the current version of the relevant repo

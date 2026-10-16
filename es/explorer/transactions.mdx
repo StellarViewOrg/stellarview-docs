@@ -1,0 +1,37 @@
+---
+title: "Transacciones"
+description: "Encuentra una transacción de Stellar y revisa su estado, comisión, operaciones y efectos en StellarView Explorer."
+---
+
+En Stellar, todo cambio ocurre mediante transacciones. Cada una contiene entre 1 y 100 operaciones, y se aplican todas o ninguna.
+
+## Cómo encontrar una transacción
+
+- **Por hash:** pega el hash de 64 caracteres en la barra de búsqueda.
+- **Navegando:** abre **Transacciones** para ver las más recientes a medida que llegan.
+- **Desde el contexto:** cada página de cuenta, ledger y contrato enlaza a sus transacciones.
+
+## Qué muestra la página
+
+| Campo | Significado |
+| --- | --- |
+| **Estado** | Si la transacción tuvo éxito o falló. |
+| **Ledger** | El ledger que la incluyó. |
+| **Cuenta de origen** | La cuenta que la envió y pagó la comisión. |
+| **Comisión** | La comisión cobrada, en XLM. El modo desarrollador la muestra en stroops. |
+| **Operaciones** | Todas las operaciones, en orden, con sus parámetros. |
+| **Efectos** | Los cambios resultantes en el estado del ledger. |
+
+## Operaciones comunes
+
+| Operación | Qué hace |
+| --- | --- |
+| `payment` | Envía XLM u otro activo. |
+| `createAccount` | Crea y fondea una cuenta nueva. |
+| `changeTrust` | Agrega, actualiza o elimina una trustline. |
+| `manageData` | Define o borra una entrada de datos en la cuenta. |
+| `invokeHostFunction` | Llama a un contrato inteligente de Soroban. |
+
+<Tip>
+  Una transacción fallida igual paga su comisión. Cuando algo no se vea bien, revisa primero el código de resultado en el modo desarrollador.
+</Tip>

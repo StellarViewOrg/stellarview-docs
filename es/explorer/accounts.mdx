@@ -1,0 +1,29 @@
+---
+title: "Cuentas"
+description: "Consulta una cuenta de Stellar en StellarView Explorer: saldos, trustlines, firmantes, umbrales, entradas de datos e historial."
+---
+
+Cada participante en Stellar tiene una cuenta, identificada por una clave pública que empieza con `G`.
+
+## Buscar una cuenta
+
+Pega la clave pública en la barra de búsqueda, o haz clic en cualquier dirección de cuenta que veas en el explorer. Si la cuenta tiene un dominio de Soroban, también puedes buscar por el dominio.
+
+## Detalles de la cuenta
+
+- **Saldos:** XLM y cada activo que tiene la cuenta. Las participaciones en liquidity pools enlazan a la página del pool.
+- **Trustlines:** los activos que la cuenta tiene permitido tener, con sus límites.
+- **Firmantes:** las claves autorizadas para firmar en nombre de la cuenta, con sus pesos.
+- **Umbrales:** el peso de firma requerido para operaciones de seguridad baja, media y alta.
+- **Entradas de datos:** datos clave-valor almacenados en la cuenta.
+- **Dominios:** una insignia como `alice.xlm` cuando la cuenta tiene un dominio. Consulta [Soroban Domains](/es/explorer/domains).
+
+## Actividad
+
+Tres pestañas muestran el historial de la cuenta:
+
+- **Transacciones**: las transacciones en las que participa la cuenta.
+- **Operaciones**: las operaciones que la afectaron.
+- **Efectos**: los efectos, es decir, los cambios de estado individuales, como un crédito o una actualización de trustline.
+
+Las listas están paginadas. Desplázate para cargar más.

@@ -1,0 +1,133 @@
+---
+title: "Arquitectura de la TUI"
+description: Arquitectura de StellarView TUI y de su ruta de datos dedicada.
+---
+
+## Descripción general
+
+StellarView TUI es una interfaz de terminal para inspeccionar datos de la red Stellar. Está pensada para quienes necesitan acceso rápido, manejado con el teclado, a ledgers, transacciones, cuentas, activos, contratos y actividad de Soroban desde la línea de comandos.
+
+La TUI está formada por dos partes coordinadas:
+
+- `tui/`: la aplicación de terminal en Go, responsable de la experiencia de usuario, el estado local, la navegación y el acceso directo a Stellar RPC.
+- `tui-indexer/`: el backend dedicado a los flujos de terminal, responsable de las lecturas indexadas, la búsqueda, los segmentos de líneas de tiempo y los datos del feed en vivo.
+
+Esta estructura mantiene enfocado el producto de terminal: la app sigue siendo ágil y local-first, mientras el backend prepara datos más completos de Stellar para las vistas que necesitan más contexto del que puede dar una sola consulta RPC.
+
+## Estado actual
+
+La TUI es una alpha funcional que cubre las siete líneas de implementación del roadmap técnico con un nivel de madurez de primera versión. Puede funcionar como cliente de terminal directo contra RPC, y puede usar `tui-indexer/` para lecturas indexadas más completas en modo híbrido o indexer.
+
+Las superficies implementadas incluyen:
+
+- navegación conectada con breadcrumbs, persistencia de la selección y sublistas del explorador
+- efectos de transacciones, vistas de detalle de operaciones y recorrido de entidades relacionadas
+- detalle de invocaciones, eventos y almacenamiento de Soroban con modos de visualización decodificado y crudo
+- feed en vivo nativo de streams con ingesta desde Redis, respaldo por polling, controles de repetición, filtros y presets de seguimiento
+- flujos editables del espacio de trabajo local para marcadores, etiquetas, notas, vistas guardadas, respaldo de caché y aislamiento de perfiles
+- búsqueda agrupada con filtros de metadatos locales, ranking y paginación en el backend
+- cobertura de confiabilidad mediante niveles de pruebas unitarias, de fixtures, de integración y de la API de lectura del indexer
+
+Los roadmaps de producto y técnico todavía describen pulido y profundidad adicionales más allá de esta alpha. Deben leerse como una dirección, no como una garantía de que cada punto futuro ya está completo.
+
+## Limitaciones conocidas
+
+- La TUI todavía no es una versión estable; el comportamiento de los comandos y la composición de las vistas pueden cambiar.
+- El modo RPC es intencionalmente más limitado que el modo indexer.
+- Los flujos híbrido e indexer requieren `tui-indexer/` y su infraestructura local.
+- Los filtros avanzados del feed en vivo por contrato, activo y tipo de operación dependen de campos de metadatos indexados opcionales.
+- La ingesta de streams de Redis requiere `redis_url` en el perfil activo y un publicador en vivo de `tui-indexer` en ejecución.
+- Las vistas guardadas restauran los comandos y el contexto de la pantalla; no reproducen todo el estado de selección de la interfaz más allá de los filtros guardados.
+- Algunas secciones indexadas que no están disponibles se degradan de forma visible, en lugar de mezclar en silencio payloads de RPC y del indexer.
+
+## Principios de diseño
+
+- **UX pensada para la terminal:** navegación con el teclado, vistas compactas, búsqueda de comandos y atajos predecibles.
+- **Modelo de datos nativo de Stellar:** ledgers, transacciones, operaciones, cuentas, activos, contratos, trustlines, eventos de Soroban y metadatos de Stellar RPC son conceptos de primera clase.
+- **Contexto de trabajo local-first:** los perfiles, etiquetas, marcadores, notas y el estado de la sesión se guardan en local para que las investigaciones continúen entre sesiones.
+- **Lecturas conscientes del origen:** la interfaz muestra si los datos vinieron de Stellar RPC, del backend de la TUI o de un respaldo por RPC.
+- **Profundidad de datos progresiva:** la TUI arranca con RPC directo y suma búsqueda, listas, líneas de tiempo y entidades relacionadas más completas cuando `tui-indexer/` está disponible.
+- **Resolución desde un único origen:** cada operación de lectura se resuelve contra un solo origen de datos, lo que evita mezclar campos de distintos payloads en un mismo resultado.
+
+## Modelo de ejecución
+
+`tui/` usa un runtime de Bubble Tea con renderizado de Lip Gloss. La shell se organiza en regiones estables:
+
+- encabezado con el contexto de perfil, red y origen de datos
+- navegación lateral para las pantallas principales
+- área principal del explorador para el feed en vivo, la consulta y las vistas de detalle
+- área de estado para información del ciclo de vida y de los respaldos
+- overlays para la ayuda y la búsqueda de comandos
+
+Cada vista es dueña de su estado de interacción local. Los modelos del feed en vivo, la consulta, la configuración, el inicio y la paleta de comandos gestionan su propia selección, desplazamiento y ciclo de vida de vacío, carga y error. Esto mantiene predecible el comportamiento de la terminal a medida que el producto suma vistas de entidades más profundas.
+
+## Modos de datos
+
+### Modo RPC
+
+El modo RPC usa Stellar RPC directamente. Permite un arranque rápido y flujos de consulta básicos sin ejecutar servicios locales adicionales.
+
+Casos de uso típicos:
+
+- inspeccionar la actividad reciente de ledgers
+- consultar un ledger, una transacción, una cuenta o un contrato
+- verificar metadatos de cuentas y contratos directamente desde Stellar RPC
+
+### Modo indexer
+
+El modo indexer lee desde `tui-indexer/`. Se usa cuando la terminal necesita datos indexados, segmentos relacionados, listas de entidades, resultados de búsqueda, holders, líneas de tiempo, operaciones, eventos y otros datos orientados al explorador.
+
+Casos de uso típicos:
+
+- recorrer ledgers, cuentas, activos y contratos recientes
+- inspeccionar las líneas de tiempo de cuentas, activos y contratos
+- buscar entre entidades de Stellar indexadas
+- abrir transacciones, operaciones, holders y eventos de contratos relacionados
+
+### Modo híbrido
+
+El modo híbrido prefiere `tui-indexer/` y recurre a Stellar RPC para las operaciones que el backend no puede servir. La TUI muestra el origen resuelto y el motivo del respaldo para que sepas cuándo una vista está completa, indexada o degradada.
+
+## Persistencia local
+
+La TUI guarda en SQLite el estado visible para el usuario:
+
+- perfiles
+- marcadores
+- etiquetas
+- notas
+- estado de la sesión
+- metadatos locales adjuntos
+
+Esto convierte a la terminal en un espacio de trabajo persistente, no solo en un cliente de consultas pasajero. La capa local también es la base de las vistas guardadas, de volver a visitar entidades inspeccionadas y de adjuntar contexto del operador a objetos de Stellar.
+
+## Responsabilidades del backend
+
+`tui-indexer/` prepara los datos para la exploración desde la terminal:
+
+- ingiere ledgers, transacciones, operaciones, activos, cuentas, contratos, eventos de tokens y eventos de contratos de Stellar
+- expone APIs de lectura para consultas, listas, sublistas y líneas de tiempo
+- ofrece búsqueda sobre entidades de Stellar indexadas
+- publica datos del feed en vivo para el monitoreo desde la terminal
+- normaliza los segmentos relacionados para que la TUI pase rápido de una entidad a otra
+
+## Beneficios para el usuario
+
+- investigación más rápida desde la línea de comandos
+- menos ciclos de consulta manual
+- visibilidad clara del origen de datos activo y del estado de respaldo
+- un modo por defecto útil mediante Stellar RPC directo
+- exploración más completa cuando hay datos indexados de StellarView disponibles
+- contexto local persistente para análisis recurrentes
+
+## Ruta de madurez
+
+La arquitectura es incremental a propósito:
+
+1. Mantener útil el modo RPC directo para la exploración básica.
+2. Ampliar las lecturas indexadas para listas de entidades, líneas de tiempo y datos relacionados.
+3. Profundizar la decodificación de Soroban para invocaciones, eventos, specs y almacenamiento.
+4. Agregar monitoreo en vivo nativo de streams.
+5. Ampliar el caché local y los flujos de investigaciones guardadas.
+
+Para la dirección de producto planeada, consulta el [roadmap de producto de la TUI](/es/tui/roadmap/product). Para las líneas de implementación, consulta el [roadmap técnico de la TUI](/es/tui/roadmap/technical).

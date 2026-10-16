@@ -1,0 +1,73 @@
+---
+title: "Local workspace"
+description: "Bookmarks, notes, labels, saved views, and watch presets in StellarView TUI, stored locally per profile."
+---
+
+The TUI keeps your investigation context on your machine, in the SQLite cache of the active profile. Nothing here is sent to a server.
+
+Workspace commands act on the entity you're currently looking at.
+
+<AccordionGroup>
+  <Accordion title="Bookmarks" icon="bookmark" defaultOpen>
+    | Command | Action |
+    | --- | --- |
+    | `bookmark add [title]` | Save the current entity |
+    | `bookmark remove` | Remove its bookmarks |
+    | `bookmark note <text>` | Set the bookmark's annotation |
+    | `open bookmarks` | Browse bookmarks |
+
+    Shortcuts: `m` opens the bookmark palette, `,` quick-adds, and `-` removes.
+  </Accordion>
+  <Accordion title="Notes" icon="notebook-pen">
+    | Command | Action |
+    | --- | --- |
+    | `note add [title] [\| body]` | Add a note |
+    | `note remove [title-filter]` | Remove notes, optionally by title |
+    | `note body [title-filter \|] <text>` | Update the latest matching note |
+    | `open notes` | Browse notes |
+
+    Shortcut: `;` opens the note palette.
+  </Accordion>
+  <Accordion title="Labels" icon="tag">
+    | Command | Action |
+    | --- | --- |
+    | `label add <name>` | Apply a label, creating it if needed |
+    | `label remove <name>` | Detach a label |
+    | `label delete <name>` | Delete the label everywhere |
+    | `label color <name> <color>` | Set its display color |
+    | `open labels` | Browse labels |
+    | `open labeled [name]` | Browse labeled entities |
+
+    Shortcut: `.` opens the label palette. Labels can also be preloaded from `labels.toml`.
+  </Accordion>
+  <Accordion title="Saved views" icon="layout-dashboard">
+    | Command | Action |
+    | --- | --- |
+    | `view save <name>` | Save the screen, lookup target, and feed filters |
+    | `view open <name>` | Restore it |
+    | `view delete <name>` | Delete it |
+    | `open views` | Browse saved views |
+
+    A saved view restores the command and screen context. It doesn't replay row selection beyond stored filters.
+  </Accordion>
+  <Accordion title="Watch presets" icon="eye">
+    | Command | Action |
+    | --- | --- |
+    | `watch save <name>` | Save live feed filters and pause state |
+    | `watch open <name>` | Restore and switch to the feed |
+    | `watch delete <name>` | Delete it |
+    | `watch auto <name>` | Save and apply automatically on feed entry |
+    | `open watches` | Browse presets |
+
+    A profile can also set `default_watch` in its config.
+  </Accordion>
+  <Accordion title="Recent cache" icon="history">
+    | Command | Action |
+    | --- | --- |
+    | `open recent` | Browse recently visited entities |
+    | `open cache` | Reload the cached copy of the current lookup |
+    | `open cache <kind> <target>` | Reload a specific cached entity |
+
+    When a backend lookup fails, the TUI falls back to a recent cached copy automatically.
+  </Accordion>
+</AccordionGroup>

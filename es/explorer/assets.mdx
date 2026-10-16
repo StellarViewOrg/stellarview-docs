@@ -1,0 +1,29 @@
+---
+title: "Activos"
+description: "Descubre activos de Stellar en StellarView Explorer y consulta sus metadatos de stellar.toml, holders, trades y pools."
+---
+
+Un activo en Stellar se identifica por un código, como `USDC`, más la cuenta que lo emitió. XLM es el activo nativo y no tiene emisor.
+
+## Descubrir activos
+
+La página **Activos** lista los activos de la red actual. Cada entrada muestra:
+
+- **Código y emisor**, la identidad del activo.
+- **Home domain**, leído desde la cuenta emisora.
+- **Estadísticas:** holders, trustlines y volumen de trading.
+
+## Detalles del activo
+
+- **Metadatos** del `stellar.toml` del emisor: nombre, descripción, logo e información de cumplimiento normativo.
+- **Holders**: las cuentas que tienen el activo.
+- **Trades**: los trades recientes en los que participa.
+- **Pools**: cada par de trading y liquidity pool del que forma parte el activo.
+
+## Acerca de `stellar.toml`
+
+Los emisores publican metadatos en un archivo `stellar.toml` en su home domain. El explorer lo obtiene a través de un proxy del lado del servidor que solo acepta HTTPS y rechaza localhost y los rangos de direcciones privadas, para que un home domain malicioso no pueda usar el explorer para llegar a redes internas.
+
+<Note>
+  Cualquiera puede emitir un activo con cualquier código. El emisor y su home domain son los que te indican si un `USDC` es el que esperas.
+</Note>

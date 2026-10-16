@@ -1,0 +1,34 @@
+---
+title: "Arquitectura del explorer"
+sidebarTitle: "Descripción general"
+description: "Cómo está construido StellarView Explorer: una app de Next.js que lee Horizon y Stellar RPC directamente y usa el indexer para analítica, dominios y verificación."
+---
+
+import { Diagram } from "/snippets/diagram.mdx";
+
+StellarView Explorer es una aplicación de Next.js 16 sobre React 19. Lee los datos en vivo de la cadena directamente desde **Horizon** y **Stellar RPC**, y llama al **StellarView Indexer** solo para las funcionalidades que esas APIs no pueden servir: la analítica de red, el navegador de dominios y la verificación de contratos.
+
+<Diagram name="architecture-overview" alt="El explorer lee Horizon y Stellar RPC directamente y llama al indexer para analítica, dominios y verificación." />
+
+## Frontend
+
+- **Next.js App Router** con el idioma y la red como segmentos de la URL. Consulta [Enrutamiento](/es/explorer/architecture/routing).
+- **TanStack Query** para obtener datos y guardarlos en caché. Consulta [Flujo de datos](/es/explorer/architecture/data-flow).
+- Componentes de **shadcn/ui** sobre **Tailwind CSS 4**, con **Recharts** para los gráficos.
+- Las páginas se renderizan en el servidor en la primera carga y luego se hidratan para la navegación del lado del cliente.
+
+## Backend opcional
+
+El explorer funciona perfectamente sin backend. Definir `NEXT_PUBLIC_INDEXER_URL` lo apunta a un indexer y activa los paneles que dependen de él. Sin esa variable, esos paneles muestran un estado de "todavía no disponible" y el resto de la app no se ve afectado.
+
+## Decisiones de diseño
+
+- **Primero los datos en vivo.** Leer Horizon y RPC directamente mantiene al explorer fiel al último ledger y permite que cualquiera lo ejecute sin infraestructura.
+- **Consciente de la red en todo momento.** Cada consulta incluye la red, así que cambiar de red nunca mezcla datos entre ellas.
+- **Un cliente por red.** Los clientes de Horizon y RPC se crean una vez por red y se reutilizan.
+- **Los datos inmutables se guardan en caché para siempre.** Los ledgers cerrados, las transacciones y el código de los contratos usan `staleTime: Infinity`, porque nunca cambian.
+- **Fallar por panel.** Una fuente de datos ausente degrada un panel, nunca la página completa.
+
+## Código fuente
+
+[`apps/explorer-web`](https://github.com/StellarViewOrg/stellarview-explorer/tree/main/apps/explorer-web) en el repositorio del explorer.

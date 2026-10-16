@@ -1,0 +1,69 @@
+---
+title: "Modos de datos"
+description: "Elige entre los modos RPC, híbrido e indexer en StellarView TUI, y configura el backend del indexer de la TUI."
+---
+
+Cada consulta en la TUI se resuelve contra un único origen de datos, y el encabezado te indica cuál respondió.
+
+<CardGroup cols={3}>
+  <Card title="RPC" icon="plug">
+    Por defecto. Solo Horizon y Stellar RPC. Sin servicios locales.
+  </Card>
+  <Card title="Híbrido" icon="git-merge">
+    Prefiere el indexer de la TUI y recurre a RPC cuando una ruta no está indexada.
+  </Card>
+  <Card title="Indexer" icon="database">
+    Lee solo desde el indexer de la TUI.
+  </Card>
+</CardGroup>
+
+## Modo RPC
+
+Sirve para consultas rápidas de ledgers, transacciones, cuentas y contratos, y para un feed en vivo básico. Combina Horizon (historial, activos, operaciones) con Stellar RPC (estado de contratos y metadatos de Soroban).
+
+Los eventos de contratos se limitan a la ventana de retención de RPC, de unas 24 horas. Los escaneos de almacenamiento persistente y la búsqueda de texto completo necesitan el indexer.
+
+## Modo híbrido
+
+Agrega búsqueda indexada, listas de entidades, líneas de tiempo, holders, el historial completo de eventos de contratos y una inspección de contratos más completa. Cuando el indexer no puede servir algo, la TUI recurre a RPC y marca la vista para que sepas que está degradada.
+
+## Configurar el indexer de la TUI
+
+El modo híbrido espera el indexer de la TUI en `http://127.0.0.1:8081`, según lo definido en `config/hybrid.testnet.json`.
+
+<Steps>
+  <Step title="Levanta la infraestructura">
+    ```bash
+    cd infra
+    docker compose -f docker-compose.tui-indexer.yml up -d
+    ```
+    Esto inicia PostgreSQL, Redis y Typesense.
+  </Step>
+  <Step title="Aplica las migraciones">
+    ```bash
+    cd ../tui-indexer
+    make migrate
+    ```
+  </Step>
+  <Step title="Inicia la API de lectura">
+    ```bash
+    make run-serve
+    ```
+  </Step>
+  <Step title="Ingiere datos en vivo (opcional)">
+    En otra terminal:
+    ```bash
+    RPC_ENDPOINT=https://soroban-testnet.stellar.org NETWORK=testnet make run-live
+    ```
+  </Step>
+  <Step title="Ejecuta la TUI en modo híbrido">
+    ```bash
+    cd ../tui
+    make run-hybrid
+    ```
+  </Step>
+</Steps>
+
+<Tip>
+  Para el feed en vivo por streaming, define `redis_url` en el perfil activo y mantén en ejecución el publicador en vivo del indexer de la TUI.
+</Tip>

@@ -1,0 +1,131 @@
+---
+title: "Roadmap de producto"
+description: Dirección de producto planeada para StellarView TUI.
+---
+
+StellarView TUI se plantea como un espacio de trabajo profesional en la terminal para explorar la actividad de Stellar. La dirección de producto se centra en la investigación rápida, el acceso a datos consciente del origen, la claridad sobre Soroban, el monitoreo en vivo y el contexto de trabajo local.
+
+Este roadmap describe las capacidades visibles para el usuario que se planean para las próximas iteraciones. Está escrito a propósito como una dirección de producto, no como una lista de verificación de auditoría.
+
+## Visión del producto
+
+La TUI debería permitir que el usuario parta de cualquier objeto de Stellar y recorra el contexto de red que lo rodea sin salir de la terminal. Un flujo típico debería verse así:
+
+1. Abrir la TUI solo con Stellar RPC configurado, o con el backend indexado de la TUI disponible.
+2. Buscar un ledger, una transacción, una cuenta, un activo, un contrato, una etiqueta, un marcador o una nota.
+3. Inspeccionar la entidad en una vista de detalle compacta.
+4. Saltar a transacciones, operaciones, holders, eventos, contratos, cuentas o activos relacionados.
+5. Guardar contexto local durante la investigación.
+6. Volver más tarde y recuperar suficiente estado local para continuar con la misma línea de trabajo.
+
+La implementación actual ya ofrece la base: runtime interactivo, consulta, lecturas conscientes del origen, respaldo híbrido, metadatos locales, navegación del feed en vivo, líneas de tiempo, specs de contratos, almacenamiento de contratos y las primeras vistas de Soroban decodificadas y crudas. El roadmap que sigue describe cómo deberían madurar esas superficies.
+
+## Ejes del roadmap
+
+| Eje | Resultado planeado |
+|---|---|
+| Exploración conectada | Las vistas de entidades deberían sentirse conectadas, no como consultas aisladas. |
+| Comprensión de Soroban | Los contratos, eventos, specs, almacenamiento e invocaciones deberían poder leerse desde la terminal. |
+| Monitoreo en vivo | La actividad reciente debería evolucionar hacia un flujo de monitoreo nativo de streams. |
+| Espacio de trabajo local | Los marcadores, etiquetas, notas, entidades en caché y vistas guardadas deberían convertirse en flujos principales. |
+| Calidad de la búsqueda | La búsqueda debería funcionar bien con entradas parciales, contexto local y datos indexados de Stellar. |
+| Confianza operativa | El origen de datos, el respaldo, el estado del caché y las funciones no disponibles deberían ser visibles y predecibles. |
+
+## Exploración conectada
+
+La TUI debería seguir pasando de la consulta puntual a una exploración de Stellar con forma de grafo. El usuario debería poder inspeccionar una entidad, entender su contexto inmediato y abrir entidades relacionadas con un mínimo de teclas.
+
+Mejoras planeadas:
+
+- Agregar breadcrumbs más sólidos que muestren cómo llegó el usuario a la vista actual.
+- Conservar la selección y la posición de desplazamiento al entrar y salir de listas anidadas del explorador.
+- Profundizar el detalle de las transacciones con efectos y un contexto más rico de las operaciones.
+- Agregar vistas de detalle dedicadas para las operaciones, en lugar de solo filas compactas.
+- Hacer consistente el recorrido de entidades relacionadas entre ledgers, transacciones, cuentas, activos y contratos.
+- Agregar encabezados de contexto más claros a vistas de lista como las transacciones de una cuenta, los holders de un activo y los eventos de un contrato.
+
+Resultado esperado:
+
+- El usuario puede pasar de un ledger a sus transacciones, de una transacción a sus operaciones, de las operaciones a cuentas, activos o contratos, y volver al contexto original sin reiniciar el flujo.
+
+## Espacio de trabajo de Soroban
+
+La TUI ya muestra metadatos de contratos, eventos recientes, resúmenes de specs, resúmenes de almacenamiento y modos de visualización decodificado y crudo. El siguiente paso de producto es convertir esa base en un espacio de trabajo para investigar contratos.
+
+Mejoras planeadas:
+
+- Agregar vistas de invocaciones que expliquen las funciones llamadas, los argumentos, el estado del resultado, las comisiones y el contexto de la transacción relacionada.
+- Mostrar el contexto de autorización cuando esté disponible, incluidas las relaciones entre cuentas o contratos involucradas en una operación de Soroban.
+- Ampliar la navegación por los métodos del contrato más allá de los resúmenes compactos.
+- Agregar vistas de eventos más profundas con secciones de topic y valor, salida decodificada y respaldo crudo.
+- Agregar navegación detallada del almacenamiento con paginación, contexto de expiración, durabilidad, valores decodificados para mostrar y formas de copiar el XDR crudo.
+- Enlazar las vistas de contratos con las cuentas, activos, transacciones y eventos relacionados.
+
+Resultado esperado:
+
+- El usuario puede inspeccionar un contrato de Stellar desde la terminal con suficiente contexto decodificado para la investigación diaria, sin perder acceso al payload crudo para la depuración avanzada.
+
+## Monitoreo en vivo
+
+El feed en vivo actual admite transacciones recientes, historial retenido, pausa y reanudación, y filtros generales para todas las transacciones, las de Soroban y las clásicas. El roadmap apunta a convertirlo en una verdadera vista de monitoreo.
+
+Mejoras planeadas:
+
+- Consumir actualizaciones del backend orientadas a streams, en lugar de depender solo de resúmenes refrescados.
+- Agregar controles de repetición sobre la actividad retenida.
+- Agregar filtros por cuenta, activo, contrato, clase de transacción, tipo de operación y actividad de Soroban.
+- Mantener estable la selección de filas mientras llega actividad nueva.
+- Permitir abrir una fila en vivo y volver al mismo contexto de monitoreo.
+- Agregar configuraciones de seguimiento a nivel de perfil para sesiones de monitoreo recurrentes.
+
+Resultado esperado:
+
+- El usuario puede mantener la TUI abierta mientras observa la red, filtrar el flujo de actividad, inspeccionar un elemento y volver al monitoreo sin perder su posición.
+
+## Espacio de trabajo local
+
+La capa local en SQLite ya guarda perfiles, estado de la sesión, marcadores, etiquetas, notas, historial del feed en vivo y payloads de consultas visitadas. El siguiente paso es que el contexto local sea editable y útil dentro de la experiencia principal.
+
+Mejoras planeadas:
+
+- Agregar flujos de teclado para crear, editar y quitar marcadores, etiquetas y notas.
+- Mostrar los metadatos locales en los encabezados de las entidades, los resultados de búsqueda y las listas relacionadas.
+- Agregar filtros para entidades con marcador, con etiqueta, con notas y visitadas recientemente.
+- Agregar flujos para abrir desde el caché los payloads inspeccionados antes.
+- Agregar vistas guardadas para investigaciones recurrentes.
+- Agregar aislamiento del espacio de trabajo a nivel de perfil para que equipos y usuarios separen sus contextos con claridad.
+
+Resultado esperado:
+
+- La TUI se convierte en un espacio de trabajo persistente para investigar, no solo en un cliente de consultas en vivo.
+
+## Búsqueda y descubrimiento
+
+La búsqueda ya combina la inferencia de entidades, los resultados del backend y los metadatos locales. El siguiente paso de producto es que la búsqueda sea más tolerante y más útil cuando el usuario escribe entradas parciales o ambiguas.
+
+Mejoras planeadas:
+
+- Mejorar el ranking para entradas parciales de cuentas, activos, contratos y transacciones.
+- Agrupar los resultados por tipo de entidad y por origen.
+- Agregar resúmenes más claros para los resultados indexados y locales.
+- Permitir refinar o paginar conjuntos grandes de resultados.
+- Hacer que el contexto local guardado se pueda buscar a través de las entidades de Stellar asociadas.
+- Mantener los resultados deshabilitados o incompletos visiblemente distintos de las filas ejecutables.
+
+Resultado esperado:
+
+- La búsqueda se convierte en el punto de entrada más rápido a la TUI, ya sea que el usuario empiece desde un hash, una dirección, una etiqueta, una nota, un código de activo o un identificador parcial.
+
+## Dirección de las versiones
+
+La próxima versión madura debería priorizar:
+
+- navegación conectada entre entidades
+- mayor detalle de transacciones y operaciones
+- vistas de invocaciones y autorizaciones de Soroban
+- monitoreo nativo de streams
+- flujos editables del espacio de trabajo local
+- flujos confiables de revisita conscientes del caché
+- pruebas más sólidas del respaldo híbrido, la persistencia local, la búsqueda y el renderizado decodificado y crudo
+
+El producto debería seguir siendo útil en el modo solo RPC, pero el modo indexer debería ofrecer claramente una exploración más rica, mejor búsqueda y líneas de tiempo más completas.

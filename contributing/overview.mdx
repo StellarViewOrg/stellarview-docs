@@ -1,0 +1,51 @@
+---
+title: "Contributing"
+description: "How to contribute to StellarView: where the code lives, how to pick an issue, and what a pull request needs to get merged."
+---
+
+StellarView is built in the open, and contributions of every size are welcome: a typo fix, a translation, a new indexer metric, or a whole feature.
+
+## Where things live
+
+| Repository | Stack | Contribute here for |
+| --- | --- | --- |
+| [stellarview-explorer](https://github.com/StellarViewOrg/stellarview-explorer) | Next.js, TypeScript, Bun | The web explorer, its UI, and translations |
+| [stellarview-indexer](https://github.com/StellarViewOrg/stellarview-indexer) | Go, PostgreSQL, TimescaleDB | Ingestion, storage, and the read API |
+| [stellarview-tui](https://github.com/StellarViewOrg/stellarview-tui) | Go, Bubble Tea | The terminal client, the TUI indexer, and the decode library |
+| [stellarview-docs](https://github.com/StellarViewOrg/stellarview-docs) | Mintlify | This site. See [Writing docs](/contributing/docs). |
+
+## Picking something to work on
+
+<Steps>
+  <Step title="Find an issue">
+    Issues labeled [`good first issue`](https://github.com/search?q=org%3AStellarViewOrg+label%3A%22good+first+issue%22+state%3Aopen&type=issues) are scoped for a first contribution. `help wanted` marks work the maintainers would especially like help with.
+  </Step>
+  <Step title="Ask to be assigned">
+    Comment on the issue with a short note on how you plan to approach it. Please wait to be assigned before you start, so two people don't build the same thing.
+  </Step>
+  <Step title="Say hello">
+    Join the [Telegram community](https://t.me/stellarviewdata) to ask questions and talk to maintainers.
+  </Step>
+</Steps>
+
+<Tip>
+  Starring the repositories you contribute to helps the project get noticed, and it's taken into account when several people ask for the same issue.
+</Tip>
+
+## Pull requests
+
+- **Title** in [Conventional Commits](https://www.conventionalcommits.org) form, such as `feat(indexer): add asset supply metric` or `fix(explorer): handle missing home domain`.
+- **One change per pull request.** Smaller pull requests get reviewed faster.
+- **Link the issue** with `Closes #123`.
+- **Checks pass**: lint, formatting, and tests, as described in each repository's `CONTRIBUTING.md`.
+- **Tests** for new behavior.
+- **Screenshots** for visible UI changes.
+
+Every pull request is reviewed by a maintainer. Expect review comments about Stellar correctness as well as code quality.
+
+## Conventions across the project
+
+- **License:** Apache 2.0. By contributing, you agree your work is licensed the same way.
+- **Language:** English for code, commits, issues, and pull requests.
+- **Dependencies:** updates are handled by Renovate. Please don't open pull requests that only bump versions.
+- **Security issues:** report them privately through GitHub security advisories on the affected repository, not in a public issue.

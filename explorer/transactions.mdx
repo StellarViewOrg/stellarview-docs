@@ -1,0 +1,37 @@
+---
+title: "Transactions"
+description: "Find a Stellar transaction and read its status, fee, operations, and effects in StellarView Explorer."
+---
+
+Transactions are how anything changes on Stellar. Each one carries between 1 and 100 operations, and either all of them apply or none do.
+
+## Finding a transaction
+
+- **By hash:** paste the 64-character hash into the search bar.
+- **By browsing:** open **Transactions** to see the latest ones as they arrive.
+- **From context:** every account, ledger, and contract page links to its transactions.
+
+## What the page shows
+
+| Field | Meaning |
+| --- | --- |
+| **Status** | Whether the transaction succeeded or failed. |
+| **Ledger** | The ledger that included it. |
+| **Source account** | The account that submitted it and paid the fee. |
+| **Fee** | The fee charged, in XLM. Developer Mode shows stroops. |
+| **Operations** | Every operation, in order, with its parameters. |
+| **Effects** | The resulting changes to ledger state. |
+
+## Common operations
+
+| Operation | What it does |
+| --- | --- |
+| `payment` | Sends XLM or another asset. |
+| `createAccount` | Creates and funds a new account. |
+| `changeTrust` | Adds, updates, or removes a trustline. |
+| `manageData` | Sets or clears a data entry on the account. |
+| `invokeHostFunction` | Calls a Soroban smart contract. |
+
+<Tip>
+  A failed transaction still pays its fee. When something looks wrong, check the result code in Developer Mode before anything else.
+</Tip>

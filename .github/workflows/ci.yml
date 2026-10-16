@@ -7,21 +7,32 @@ on:
     branches: [main]
 
 jobs:
-  build:
-    name: Build
+  validate:
+    name: Validate
     runs-on: ubuntu-latest
 
     steps:
       - name: Checkout repository
         uses: actions/checkout@v7
 
-      - name: Setup Bun
-        uses: oven-sh/setup-bun@v2
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
         with:
-          bun-version: latest
+          node-version: 22
 
-      - name: Install dependencies
-        run: bun install --frozen-lockfile
+      - name: Install Mintlify CLI
+        run: npm install -g mint
 
-      - name: Build
-        run: bun run build
+      - name: Validate build
+        run: mint validate
+
+      - name: Check links
+        run: mint broken-links
+
+      - name: Reject em dashes
+        run: |
+          EM_DASH="$(printf '\xe2\x80\x94')"
+          if grep -rn --include='*.mdx' --include='*.json' --include='*.yaml' "$EM_DASH" . --exclude-dir=node_modules --exclude-dir=.git --exclude-dir=.claude --exclude-dir=architecture --exclude-dir=report; then
+            echo "Replace em dashes with a comma, colon, period, or parentheses."
+            exit 1
+          fi

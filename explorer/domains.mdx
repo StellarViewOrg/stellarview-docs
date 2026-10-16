@@ -1,0 +1,34 @@
+---
+title: "Soroban Domains"
+description: "Resolve, browse, and inspect *.xlm domains in StellarView Explorer."
+---
+
+Soroban Domains is a name service on Stellar. It maps names like `stellar.xlm` or `pay.alice.xlm` to an account or a contract.
+
+## Resolving a domain
+
+Type the name into the search bar or the command palette. The explorer resolves it against the registry contract and opens the account or contract it points to.
+
+Resolution runs directly against Stellar RPC, so it works even before the indexer has caught up. A name that isn't registered shows "not registered" instead of a raw contract error.
+
+<Note>
+  Resolution is not available on Futurenet, where the registry contract is not deployed.
+</Note>
+
+## Badges on account and contract pages
+
+An address that owns a domain shows it as a badge next to the address, such as `alice.xlm`, plus `+N more` when it owns several. No badge means it owns none. A muted **Domains pending** badge means the indexer hasn't caught up yet, which is a different situation.
+
+## The domains browser
+
+The **Domains** section lists registrations with a status filter (active, expired, revoked, or all) and pagination. Each domain page shows:
+
+- **Status:** active, expired, or revoked.
+- **Resolved target**, linked to its account or contract.
+- **Owner.**
+- **Registration and expiry dates.**
+- **Event history:** register, transfer, renew, claim, and revoke, each linked to its transaction.
+
+<Note>
+  Search in the domains list matches exact names only for now. The read API doesn't support prefix search yet.
+</Note>

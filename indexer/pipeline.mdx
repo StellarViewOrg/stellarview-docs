@@ -1,0 +1,36 @@
+---
+title: "Ingestion pipeline"
+description: "How StellarView Indexer reads, transforms, stores, and publishes Stellar ledger data."
+---
+
+import { Diagram } from "/snippets/diagram.mdx";
+
+The indexer is a pipeline with four stages: **source, transform, store, publish**.
+
+<Diagram name="indexer-pipeline" alt="Sources feed the ingestion commands, which transform ledgers into PostgreSQL, Redis, and Typesense." />
+
+## Source
+
+Two sources produce the same `LedgerCloseMeta` input:
+
+- **Stellar RPC**, for live ingestion and ranged backfills on any network.
+- **The public S3 data lake**, for fast pubnet history with no RPC dependency.
+
+## Transform
+
+Each ledger is broken down into ledgers, transactions, operations, and effects. Soroban activity gets extra work:
+
+- [Contract specs](/indexer/contract-spec) are fetched and decoded for every newly deployed contract, which also classifies SEP-41 tokens and SEP-50 NFTs.
+- [Contract events](/indexer/contract-events) are extracted from transaction meta and decoded.
+- [Token events](/indexer/token-events) are produced in the unified CAP-67 format for both classic assets and Soroban tokens.
+- Soroban Domains registry events are tracked to maintain the current owner and target of every name.
+
+Spec fetching runs in the background, so a slow RPC call never blocks ledger ingestion.
+
+## Store
+
+Everything lands in PostgreSQL with TimescaleDB. Continuous aggregates roll raw rows into the hourly, daily, and weekly buckets the analytics API reads.
+
+## Publish
+
+New activity is published on Redis for real-time consumers, and searchable entities are indexed in Typesense. Both are optional, so a missing Redis or Typesense never stops ingestion.

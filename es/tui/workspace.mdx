@@ -1,0 +1,73 @@
+---
+title: "Espacio de trabajo local"
+description: "Marcadores, notas, etiquetas, vistas guardadas y presets de seguimiento en StellarView TUI, guardados en local por perfil."
+---
+
+La TUI guarda el contexto de tus investigaciones en tu máquina, en el caché SQLite del perfil activo. Nada de esto se envía a un servidor.
+
+Los comandos del espacio de trabajo actúan sobre la entidad que estás viendo en ese momento.
+
+<AccordionGroup>
+  <Accordion title="Marcadores" icon="bookmark" defaultOpen>
+    | Comando | Acción |
+    | --- | --- |
+    | `bookmark add [title]` | Guarda la entidad actual |
+    | `bookmark remove` | Quita sus marcadores |
+    | `bookmark note <text>` | Define la anotación del marcador |
+    | `open bookmarks` | Recorre los marcadores |
+
+    Atajos: `m` abre la paleta de marcadores, `,` agrega uno rápido y `-` lo quita.
+  </Accordion>
+  <Accordion title="Notas" icon="notebook-pen">
+    | Comando | Acción |
+    | --- | --- |
+    | `note add [title] [\| body]` | Agrega una nota |
+    | `note remove [title-filter]` | Quita notas, opcionalmente por título |
+    | `note body [title-filter \|] <text>` | Actualiza la nota coincidente más reciente |
+    | `open notes` | Recorre las notas |
+
+    Atajo: `;` abre la paleta de notas.
+  </Accordion>
+  <Accordion title="Etiquetas" icon="tag">
+    | Comando | Acción |
+    | --- | --- |
+    | `label add <name>` | Aplica una etiqueta y la crea si hace falta |
+    | `label remove <name>` | Quita una etiqueta de la entidad |
+    | `label delete <name>` | Borra la etiqueta en todas partes |
+    | `label color <name> <color>` | Define su color de visualización |
+    | `open labels` | Recorre las etiquetas |
+    | `open labeled [name]` | Recorre las entidades etiquetadas |
+
+    Atajo: `.` abre la paleta de etiquetas. Las etiquetas también se pueden precargar desde `labels.toml`.
+  </Accordion>
+  <Accordion title="Vistas guardadas" icon="layout-dashboard">
+    | Comando | Acción |
+    | --- | --- |
+    | `view save <name>` | Guarda la pantalla, el objetivo de la consulta y los filtros del feed |
+    | `view open <name>` | La restaura |
+    | `view delete <name>` | La borra |
+    | `open views` | Recorre las vistas guardadas |
+
+    Una vista guardada restaura el comando y el contexto de la pantalla. No reproduce la selección de filas más allá de los filtros guardados.
+  </Accordion>
+  <Accordion title="Presets de seguimiento" icon="eye">
+    | Comando | Acción |
+    | --- | --- |
+    | `watch save <name>` | Guarda los filtros del feed en vivo y el estado de pausa |
+    | `watch open <name>` | Lo restaura y cambia al feed |
+    | `watch delete <name>` | Lo borra |
+    | `watch auto <name>` | Lo guarda y lo aplica automáticamente al entrar al feed |
+    | `open watches` | Recorre los presets |
+
+    Un perfil también puede definir `default_watch` en su configuración.
+  </Accordion>
+  <Accordion title="Caché reciente" icon="history">
+    | Comando | Acción |
+    | --- | --- |
+    | `open recent` | Recorre las entidades visitadas recientemente |
+    | `open cache` | Vuelve a cargar la copia en caché de la consulta actual |
+    | `open cache <kind> <target>` | Vuelve a cargar una entidad específica en caché |
+
+    Cuando una consulta al backend falla, la TUI recurre automáticamente a una copia reciente en caché.
+  </Accordion>
+</AccordionGroup>

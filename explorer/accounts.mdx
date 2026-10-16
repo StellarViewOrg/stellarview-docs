@@ -1,0 +1,29 @@
+---
+title: "Accounts"
+description: "Look up a Stellar account in StellarView Explorer: balances, trustlines, signers, thresholds, data entries, and history."
+---
+
+Every participant on Stellar has an account, identified by a public key that starts with `G`.
+
+## Looking up an account
+
+Paste the public key into the search bar, or click any account address you see in the explorer. If the account owns a Soroban domain, you can search for the domain instead.
+
+## Account details
+
+- **Balances:** XLM and every asset the account holds. Liquidity pool shares link to the pool page.
+- **Trustlines:** the assets the account is allowed to hold, with limits.
+- **Signers:** keys authorized to sign for the account, with their weights.
+- **Thresholds:** the signing weight required for low, medium, and high security operations.
+- **Data entries:** key-value data stored on the account.
+- **Domains:** a badge such as `alice.xlm` when the account owns a domain. See [Soroban Domains](/explorer/domains).
+
+## Activity
+
+Three tabs show the account's history:
+
+- **Transactions** that involve the account.
+- **Operations** that affected it.
+- **Effects**, the individual state changes, such as a credit or a trustline update.
+
+Lists are paginated. Scroll to load more.

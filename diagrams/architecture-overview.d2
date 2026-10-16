@@ -1,0 +1,36 @@
+# StellarView system overview.
+# The web explorer reads chain data straight from Horizon and Stellar RPC.
+# The indexer adds history, analytics, domains, and verification on top.
+direction: right
+
+clients: Clients {
+  explorer: "Explorer\nNext.js web app"
+  tui: "TUI\nGo terminal client"
+}
+
+backend: StellarView backend {
+  indexer: "Indexer\ningestion + read API"
+  tuiindexer: "TUI indexer\nterminal read API"
+  pg: "PostgreSQL\n+ TimescaleDB" {shape: cylinder}
+  redis: Redis {shape: queue}
+  search: Typesense {shape: cylinder}
+  indexer -> pg
+  indexer -> redis
+  indexer -> search
+  tuiindexer -> pg
+  tuiindexer -> redis
+}
+
+stellar: Stellar network {
+  horizon: Horizon API
+  rpc: Stellar RPC
+  lake: "Public S3\ndata lake" {shape: cylinder}
+}
+
+clients.explorer -> stellar: "live reads\n(Horizon + RPC)"
+clients.explorer -> backend.indexer: "analytics, domains,\nverification"
+clients.tui -> stellar: RPC mode
+clients.tui -> backend.tuiindexer: "hybrid and\nindexer modes"
+backend.indexer -> stellar.rpc: ingest
+backend.indexer -> stellar.lake: pubnet backfill
+backend.tuiindexer -> stellar.rpc: ingest

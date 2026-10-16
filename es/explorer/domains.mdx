@@ -1,0 +1,34 @@
+---
+title: "Soroban Domains"
+description: "Resuelve, explora e inspecciona dominios *.xlm en StellarView Explorer."
+---
+
+Soroban Domains es un servicio de nombres en Stellar. Asocia nombres como `stellar.xlm` o `pay.alice.xlm` a una cuenta o a un contrato.
+
+## Resolver un dominio
+
+Escribe el nombre en la barra de búsqueda o en la paleta de comandos. El explorer lo resuelve contra el contrato de registro y abre la cuenta o el contrato al que apunta.
+
+La resolución se ejecuta directamente contra Stellar RPC, así que funciona incluso antes de que el indexer se haya puesto al día. Un nombre que no está registrado muestra "not registered" en lugar de un error crudo del contrato.
+
+<Note>
+  La resolución no está disponible en Futurenet, donde el contrato de registro no está desplegado.
+</Note>
+
+## Insignias en las páginas de cuentas y contratos
+
+Una dirección que tiene un dominio lo muestra como una insignia junto a la dirección, por ejemplo `alice.xlm`, más `+N more` cuando tiene varios. Si no hay insignia, no tiene ninguno. Una insignia atenuada **Dominios pendientes** significa que el indexer todavía no se ha puesto al día, que es una situación distinta.
+
+## El navegador de dominios
+
+La sección **Dominios** lista los registros con un filtro de estado (activos, vencidos, revocados o todos) y paginación. La página de cada dominio muestra:
+
+- **Estado:** activo, vencido o revocado.
+- **Destino resuelto**, enlazado a su cuenta o contrato.
+- **Propietario.**
+- **Fechas de registro y de vencimiento.**
+- **Historial de eventos:** registro, transferencia, renovación, reclamo y revocación, cada uno enlazado a su transacción.
+
+<Note>
+  Por ahora, la búsqueda en la lista de dominios solo encuentra nombres exactos. La API de lectura todavía no admite búsqueda por prefijo.
+</Note>

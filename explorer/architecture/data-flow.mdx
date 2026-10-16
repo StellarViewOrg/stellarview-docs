@@ -1,0 +1,43 @@
+---
+title: "Data flow"
+description: "How data moves from Horizon, Stellar RPC, and the indexer to a rendered page in StellarView Explorer."
+---
+
+import { Diagram } from "/snippets/diagram.mdx";
+
+Data moves through four layers on its way from the network to the screen.
+
+<Diagram name="data-flow" alt="Horizon and RPC feed cached clients, which feed query definitions, then hooks, then React components." />
+
+## 1. SDK clients
+
+[`lib/stellar/client.ts`](https://github.com/StellarViewOrg/stellarview-explorer/blob/main/apps/explorer-web/src/lib/stellar/client.ts) creates and caches Stellar SDK instances:
+
+- `getHorizonClient(network)` returns a cached `Horizon.Server`.
+- `getRpcClient(network)` returns a cached `rpc.Server`.
+
+Clients live in a map keyed by network and are reused for the life of the app.
+
+## 2. Query definitions
+
+[`lib/stellar/queries.ts`](https://github.com/StellarViewOrg/stellarview-explorer/blob/main/apps/explorer-web/src/lib/stellar/queries.ts) defines what to fetch and how long to keep it:
+
+- `stellarKeys` builds hierarchical cache keys, such as `["stellar", network, "transactions", hash]`.
+- `stellarQueries` pairs each key with its fetch function and cache policy.
+
+Immutable entities use `staleTime: Infinity`. Mutable data, such as account balances, uses a 10 second stale time.
+
+## 3. Hooks
+
+[`lib/hooks/`](https://github.com/StellarViewOrg/stellarview-explorer/tree/main/apps/explorer-web/src/lib/hooks) wraps those queries for components:
+
+- `useStellarQuery` hooks, such as `useLatestLedger()` and `useLedger(sequence)`.
+- `useStreaming` hooks, such as `useLedgerStream()`, which use Horizon streaming for live data.
+
+Every hook reads the active network from `useNetwork()`, so components never pass it by hand.
+
+Indexer-backed features, such as analytics and verification, have their own clients under [`lib/indexer/`](https://github.com/StellarViewOrg/stellarview-explorer/tree/main/apps/explorer-web/src/lib/indexer).
+
+## 4. Components
+
+Components call hooks and render the result. Loading, error, and pagination state come from TanStack Query.

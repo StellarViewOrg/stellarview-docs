@@ -1,0 +1,71 @@
+---
+title: "Keyboard and commands"
+description: "Keyboard shortcuts and command palette reference for StellarView TUI."
+---
+
+## Global keys
+
+| Key | Action |
+| --- | --- |
+| `h` | Home |
+| `l` | Live feed |
+| `u` | Lookup |
+| `s` | Settings |
+| `/` | Open search or the command palette |
+| `b` / `f` | Back and forward, across screens and lookup steps |
+| `r` | Refresh, bypassing the cache on lookup |
+| `tab` | Cycle focus |
+| `y` | Copy the current identifier |
+| `?` | Toggle help |
+| `q` | Quit |
+
+## Moving around
+
+| Key | Action |
+| --- | --- |
+| `j` / `k` or arrows | Move the selection |
+| `pgup` / `pgdn`, `home` / `end` | Move through long views |
+| `enter` | Open the selected row |
+
+The `Route:` line shows breadcrumbs for the current lookup. Walking it with `b` and `f` keeps your list selection.
+
+## Live feed
+
+| Key | Action |
+| --- | --- |
+| `p` | Pause or resume |
+| `t` | Cycle between all, Soroban, and classic transactions |
+| `[` / `]` | Replay retained scrollback while paused |
+| `left` / `right` | Choose what `y` copies: hash, ledger, or account |
+| `enter` | Open the selected transaction |
+| `x` / `X` | Export the visible transactions to CSV or JSON |
+
+Advanced filters, typed in the palette:
+
+```text
+live filter account <G...>
+live filter contract <C...>
+live filter asset <CODE:ISSUER>
+live filter operation <type>
+```
+
+`b` or `live return` brings you back to the feed with its position, filters, and pause state intact.
+
+## Command palette
+
+Type a Stellar identifier or a command. `enter` runs the highlighted result, `esc` closes, and `ctrl+v` pastes from the clipboard.
+
+| Command | What it does |
+| --- | --- |
+| `open ledgers`, `open accounts`, `open assets`, `open contracts` | Browse recent indexed entities |
+| `open ledgers limit 20 before <sequence>` | Page back through ledger history |
+| `open txs`, `open ops`, `open holders`, `open events`, `open storage`, `open invocations` | Open a sublist of the current entity |
+| `open event <n>`, `open storage <n>`, `open invocation <n>` | Drill into one Soroban item |
+| `open decode raw` / `open decode decoded` | Switch Soroban sections between raw and decoded |
+| `lookup op <txhash>:<index>` | Open one operation |
+| `open timeline` | Normalized activity for an account, asset, or contract |
+| `open timeline type tx\|op\|holder\|event` | A category-specific timeline |
+| `limit <n> offset <n>` | Page a sublist |
+| `search more <query> <offset>` | Load more search results |
+
+Results are grouped by source (`INDEXER`, `HORIZON`, `LOCAL`) and kind, with exact and prefix matches first. Prefixes such as `label:`, `bookmark:`, `note:`, `cache:`, `view:`, and `watch:` search your local workspace.

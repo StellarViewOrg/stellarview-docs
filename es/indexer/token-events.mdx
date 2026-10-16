@@ -1,0 +1,140 @@
+---
+title: "Eventos de tokens (CAP-67)"
+description: Cómo el indexer extrae eventos unificados de transferencia de tokens de cada ledger con el Token Transfer Processor de Stellar.
+---
+
+## Qué permite
+
+Antes de CAP-67, seguir los movimientos de tokens en Stellar requería pipelines separados: diffs del estado del ledger para los activos clásicos y logs de eventos de contratos para los tokens de Soroban. Usaban formatos distintos, APIs distintas y no tenían un esquema común.
+
+CAP-67 introduce un **único flujo de eventos unificado** que cubre todo movimiento de valor de tokens en la red, sin importar si el activo es un activo clásico de Stellar (XLM, USDC) o un token puro de Soroban. Este documento cubre el lado del indexer de ese flujo.
+
+Con esto, el explorador puede:
+
+- Mostrar el historial completo de transferencias de cualquier cuenta sin combinar dos fuentes de datos distintas
+- Mostrar eventos de mint, burn y clawback junto a las transferencias normales en un único feed unificado
+- Tratar los pagos de comisiones como eventos de primera clase, no como metadatos escondidos dentro de los envelopes de las transacciones
+- Calcular el suministro circulante de cualquier token como `SUM(mint) - SUM(burn)`, directamente desde la base de datos
+
+## Cómo funciona
+
+El indexer usa el **Token Transfer Processor** (TTP) de `github.com/stellar/go-stellar-sdk/processors/token_transfer`. Para cada ledger, `TokenEventsFromLedgerMeta` decodifica el XDR `LedgerCloseMeta` que el RPC devuelve en el campo `metadataXdr` de `getLedgers` y se lo pasa a `EventsProcessor.EventsFromLedger()`.
+
+El TTP normaliza todo en mensajes protobuf `TokenTransferEvent`. Cada evento incluye:
+
+| Campo | Descripción |
+|---|---|
+| `event_type` | `0` transfer · `1` mint · `2` burn · `3` clawback · `4` fee |
+| `from_address` / `to_address` | Emisor y receptor (con sus variantes muxed) |
+| `asset_type` | `0` nativo · `1` crédito clásico · `2` token puro de Soroban |
+| `asset_code` / `asset_issuer` | Presentes en los activos de crédito |
+| `asset_contract_id` | Presente en los tokens de Soroban y en los activos clásicos envueltos en un SAC |
+| `amount` | Valor i128 crudo como cadena decimal |
+| `ledger_sequence` / `transaction_hash` | Trazabilidad hasta el origen |
+
+Se insertan por lotes en la hypertable `token_events` de TimescaleDB después de cada ledger.
+
+**Ruta del código:**
+
+```
+source/rpc.go (getLedgers metadataXdr)
+  → transform/token_events.go TokenEventsFromLedgerMeta()
+    → TTP EventsProcessor.EventsFromLedger()
+      → store/postgres.go InsertTokenEventBatch()
+        → token_events (TimescaleDB hypertable)
+```
+
+## Cómo verificar que funciona
+
+### Requisitos previos
+
+Servicios de Docker en ejecución y migraciones aplicadas (consulta el [README del indexer](https://github.com/StellarViewOrg/stellarview-indexer/blob/main/README.md)).
+
+### 1. Ejecuta el indexer contra testnet
+
+```bash
+RPC_ENDPOINT=https://soroban-testnet.stellar.org NETWORK=testnet ./bin/indexer live
+```
+
+Espera a que se ingieran algunos ledgers (busca `ingested ledger XXXXXXX` en los logs).
+
+### 2. Comprueba que llegaron los eventos de tokens
+
+```bash
+docker compose -f infra/docker-compose.yml exec postgres psql -U explorer -d stellar_explorer -c "
+SELECT event_type_name, from_address, to_address, asset_code, amount, transaction_hash
+FROM token_events
+ORDER BY created_at DESC
+LIMIT 10;
+"
+```
+
+Deberías ver filas con `transfer`, `fee`, `mint` o `burn` en la columna `event_type_name`.
+
+### 3. Inspecciona un tipo de evento específico
+
+```bash
+# Native XLM fee events (present in almost every ledger)
+docker compose -f infra/docker-compose.yml exec postgres psql -U explorer -d stellar_explorer -c "
+SELECT event_type_name, from_address, asset_code, amount, ledger_sequence
+FROM token_events
+WHERE event_type_name = 'fee'
+ORDER BY created_at DESC
+LIMIT 5;
+"
+
+# Transfers (classic + Soroban)
+docker compose -f infra/docker-compose.yml exec postgres psql -U explorer -d stellar_explorer -c "
+SELECT event_type_name, from_address, to_address, asset_type, asset_code, asset_contract_id, amount
+FROM token_events
+WHERE event_type_name = 'transfer'
+ORDER BY created_at DESC
+LIMIT 10;
+"
+
+# Transfers involving a contract address on either side (Soroban-native activity)
+docker compose -f infra/docker-compose.yml exec postgres psql -U explorer -d stellar_explorer -c "
+SELECT
+  event_type_name,
+  from_address,
+  CASE WHEN from_address LIKE 'C%' THEN true ELSE false END AS from_is_contract,
+  to_address,
+  CASE WHEN to_address LIKE 'C%' THEN true ELSE false END AS to_is_contract,
+  asset_type,
+  asset_code,
+  asset_contract_id,
+  amount,
+  transaction_hash
+FROM token_events
+WHERE event_type_name = 'transfer'
+  AND (from_address LIKE 'C%' OR to_address LIKE 'C%')
+ORDER BY created_at DESC
+LIMIT 10;
+"
+```
+
+### 4. Cuenta por tipo para ver el desglose
+
+```bash
+docker compose -f infra/docker-compose.yml exec postgres psql -U explorer -d stellar_explorer -c "
+SELECT event_type_name, COUNT(*) as total
+FROM token_events
+GROUP BY event_type_name
+ORDER BY total DESC;
+"
+```
+
+### 5. Ejecuta las pruebas unitarias
+
+```bash
+go test ./internal/transform/ -run TestTokenEvent -v
+```
+
+Estas pruebas ejercitan el mapeo de proto a almacenamiento para eventos de transfer, mint, token de Soroban y fee, sin conectarse a la red.
+
+## Notas
+
+- Los eventos de comisión no tienen `operation_index` (no están ligados a una operación específica).
+- Los tokens puros de Soroban (`asset_type = 2`) no tienen `asset_code` ni `asset_issuer`, solo `asset_contract_id`.
+- `amount` se guarda como una cadena decimal i128 cruda. Para formatearlo y mostrarlo se necesita el valor `decimals` del token, que está en la tabla `contracts`.
+- Si a un ledger le falta `metadataXdr` (algo posible en versiones antiguas del protocolo), el procesador devuelve una lista vacía y el ledger se ingiere igual, sin errores.

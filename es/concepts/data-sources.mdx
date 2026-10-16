@@ -1,0 +1,42 @@
+---
+title: "Fuentes de datos"
+description: "De dónde vienen los datos de StellarView: Horizon, Stellar RPC, el data lake público en S3 y los indexers de StellarView."
+---
+
+StellarView no depende de un único backend monolítico. Cada funcionalidad lee de la fuente que mejor la resuelve, y la interfaz te avisa cuando una fuente no está disponible en lugar de mostrar una pantalla vacía.
+
+## Las fuentes
+
+<AccordionGroup>
+  <Accordion title="API de Horizon" icon="server">
+    La API REST de Stellar para datos clásicos: ledgers, transacciones, operaciones, efectos, cuentas, activos, ofertas, trades y liquidity pools. También transmite en streaming los nuevos ledgers y transacciones. El explorer la usa en la mayoría de las páginas y en el feed en vivo.
+  </Accordion>
+  <Accordion title="Stellar RPC" icon="cpu">
+    La interfaz JSON-RPC para Soroban: código de contratos, almacenamiento, eventos y simulación de transacciones. El explorer la usa en las páginas de contratos y en la consola de lectura y escritura. La TUI la usa en modo RPC, y el indexer ingiere datos desde ella.
+  </Accordion>
+  <Accordion title="Data lake público en S3" icon="archive">
+    Un archivo público de los ledgers de pubnet que llega hasta el ledger 3. El indexer lo lee para hacer un backfill histórico rápido. No requiere credenciales y no tiene equivalente en testnet.
+  </Accordion>
+  <Accordion title="StellarView Indexer" icon="database">
+    Guarda lo que las APIs de la red no pueden servir de forma eficiente: series de tiempo de toda la red, rankings Top-N, historial de Soroban Domains, especificaciones de contratos y verificación de código fuente. Consulta la [descripción general del Indexer](/es/indexer/overview).
+  </Accordion>
+  <Accordion title="Indexer de la TUI" icon="terminal">
+    Un backend diseñado para las vistas de terminal: listas de entidades, líneas de tiempo, holders, búsqueda de texto completo y un stream de Redis para el feed en vivo. Vive en el repositorio de la TUI.
+  </Accordion>
+</AccordionGroup>
+
+## Qué fuente usa cada funcionalidad
+
+| Funcionalidad | Fuente | Requiere un backend de StellarView |
+| --- | --- | --- |
+| Ledgers, transacciones, cuentas, activos | Horizon | No |
+| Libros de órdenes, trades recientes, reservas de pools | Horizon | No |
+| Código de contratos, almacenamiento, eventos, consola de lectura y escritura | Stellar RPC | No |
+| Resolución de `*.xlm` | Stellar RPC | No |
+| Navegador de dominios e historial de dominios | Indexer | Sí |
+| Analítica de red (History, Top N) | Indexer | Sí |
+| Gráficos de velas históricos | Indexer | Sí, en desarrollo |
+| Verificación del código fuente de contratos | Indexer | Sí, en desarrollo |
+| Búsqueda, líneas de tiempo, holders y feed en streaming de la TUI | Indexer de la TUI | Sí |
+
+Cuando una funcionalidad necesita un backend que no está configurado o que todavía no se ha lanzado, el explorer muestra un estado claro de "todavía no disponible" solo en ese panel. El resto de la página sigue funcionando.

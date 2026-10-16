@@ -1,0 +1,29 @@
+---
+title: "Assets"
+description: "Discover Stellar assets in StellarView Explorer and read their stellar.toml metadata, holders, trades, and pools."
+---
+
+An asset on Stellar is identified by a code, such as `USDC`, plus the account that issued it. XLM is the native asset and has no issuer.
+
+## Discovering assets
+
+The **Assets** page lists the assets on the current network. Each entry shows:
+
+- **Code and issuer**, the asset's identity.
+- **Home domain**, read from the issuer account.
+- **Statistics:** holders, trustlines, and trade volume.
+
+## Asset details
+
+- **Metadata** from the issuer's `stellar.toml`: name, description, logo, and compliance information.
+- **Holders**, the accounts holding the asset.
+- **Trades**, recent trades involving it.
+- **Pools**, every trading pair and liquidity pool the asset is part of.
+
+## About `stellar.toml`
+
+Issuers publish metadata in a `stellar.toml` file on their home domain. The explorer fetches it through a server-side proxy that only accepts HTTPS and rejects localhost and private address ranges, so a malicious home domain can't use the explorer to reach internal networks.
+
+<Note>
+  Anyone can issue an asset with any code. The issuer and its home domain are what tell you whether a `USDC` is the one you expect.
+</Note>

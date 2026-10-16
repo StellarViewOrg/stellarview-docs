@@ -1,0 +1,54 @@
+---
+title: "Project structure"
+description: "How the StellarView Explorer codebase is organized."
+---
+
+The explorer repository is a Bun workspace with one app, `apps/explorer-web`. The indexer, TUI, and these docs each live in their own repository.
+
+```text
+stellarview-explorer/
+├── apps/
+│   └── explorer-web/   # Next.js app
+├── docs/diagrams/      # Diagrams used by the README
+├── .github/workflows/  # CI
+└── package.json        # Workspace root and scripts
+```
+
+## Inside `apps/explorer-web/src`
+
+```text
+src/
+├── app/                # App Router: [locale]/[network]/(explorer)/..., plus api/ routes
+├── components/         # UI, grouped by domain
+│   ├── ui/             # shadcn/ui primitives
+│   ├── layout/         # Header, navigation, sidebars
+│   ├── accounts/  assets/  contracts/  domains/  operations/  pairs/  transactions/
+│   ├── cards/  charts/  stats/  search/  glossary/  common/
+├── lib/
+│   ├── stellar/        # SDK clients, queries, contract client, spec decoder, domains
+│   ├── indexer/        # Clients for indexer-backed features
+│   ├── hooks/          # Data and UI hooks
+│   ├── providers/      # Context providers
+│   ├── constants/      # App and network constants
+│   └── utils/          # Formatting and entity helpers
+├── i18n/               # next-intl configuration
+└── types/              # Shared TypeScript types
+```
+
+Translations live in `apps/explorer-web/messages/*.json`.
+
+## Key constants
+
+| Constant | Value | Purpose |
+| --- | --- | --- |
+| `STROOPS_PER_XLM` | `10_000_000` | Converts stroops to XLM. |
+| `DEFAULT_PAGE_SIZE` | `20` | Items per paginated list. |
+| `LIVE_LEDGER_POLL_INTERVAL` | `5000` ms | Poll interval for live data. |
+| `STALE_TIME` | `10_000` ms | Default stale time for mutable data. |
+
+## Stack
+
+- **Framework:** Next.js 16 (App Router) and React 19
+- **Data:** TanStack Query and the Stellar JavaScript SDK
+- **UI:** shadcn/ui on Tailwind CSS 4, Recharts for charts
+- **Path alias:** `@/` maps to `apps/explorer-web/src/`

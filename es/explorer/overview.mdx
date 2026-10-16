@@ -1,0 +1,57 @@
+---
+title: "Descripción general del explorer"
+sidebarTitle: "Descripción general"
+description: "StellarView Explorer es un explorador de bloques web para ledgers, transacciones, cuentas, activos, el DEX y contratos inteligentes de Soroban en Stellar."
+---
+
+StellarView Explorer es la app web de la suite. Está en línea en [stellarview.acachete.xyz](https://stellarview.acachete.xyz), no requiere cuenta y funciona en Public, Testnet y Futurenet.
+
+## Qué puedes explorar
+
+<CardGroup cols={2}>
+  <Card title="Transacciones" icon="arrow-right-left" href="/es/explorer/transactions">
+    Busca cualquier transacción por hash y consulta sus operaciones y efectos.
+  </Card>
+  <Card title="Cuentas" icon="user" href="/es/explorer/accounts">
+    Saldos, trustlines, firmantes, umbrales e historial completo de actividad.
+  </Card>
+  <Card title="Activos" icon="coins" href="/es/explorer/assets">
+    Activos emitidos con metadatos de `stellar.toml`, holders y trades.
+  </Card>
+  <Card title="Ledgers" icon="blocks" href="/es/explorer/ledgers">
+    Cada ledger a medida que se cierra, en streaming en tiempo real.
+  </Card>
+  <Card title="Contratos inteligentes" icon="file-code" href="/es/explorer/contracts">
+    Código, almacenamiento y eventos de Soroban, más una consola Read/Write generada a partir de la especificación del contrato.
+  </Card>
+  <Card title="Soroban Domains" icon="at-sign" href="/es/explorer/domains">
+    Resuelve nombres `*.xlm` y explora los registros y su historial.
+  </Card>
+  <Card title="DEX y liquidity pools" icon="chart-candlestick" href="/es/explorer/dex">
+    Pares de trading, libros de órdenes y pools AMM.
+  </Card>
+  <Card title="Analítica de red" icon="chart-line" href="/es/explorer/analytics">
+    Series de tiempo de toda la red y rankings Top-N, exportables a CSV o JSON.
+  </Card>
+</CardGroup>
+
+## Búsqueda
+
+La barra de búsqueda acepta cualquier identificador de Stellar y detecta qué es:
+
+| Entrada | Ejemplo | Abre |
+| --- | --- | --- |
+| Clave pública de cuenta | `GA...` (56 caracteres) | Página de la cuenta |
+| ID de contrato | `CA...` (56 caracteres) | Página del contrato |
+| Hash de transacción | 64 caracteres hexadecimales | Página de la transacción |
+| Secuencia de ledger | `52000000` | Página del ledger |
+| Dominio | `alice.xlm` | La cuenta o el contrato al que se resuelve |
+| Activo | `USDC-GA5Z...` (código, guion, emisor) | Página del activo |
+
+## Developer Mode
+
+Activa Developer Mode desde el encabezado para mostrar los detalles que la mayoría de las personas no necesita: XDR crudo, comisiones en stroops, parámetros completos de las operaciones y metadatos de los efectos. La preferencia se guarda en tu navegador.
+
+## Idiomas
+
+El explorer está traducido al inglés, español, portugués, francés, alemán, chino, japonés, coreano e italiano. El idioma es el primer segmento de la URL, así que `/es/public/...` abre la interfaz en español.

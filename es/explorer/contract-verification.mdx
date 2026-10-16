@@ -1,0 +1,29 @@
+---
+title: "Verificación de contratos"
+description: "Cómo StellarView vincula el Wasm de Soroban desplegado con su código fuente público, y qué significa cada estado de verificación."
+---
+
+La verificación responde una pregunta simple: ¿este binario desplegado se compiló a partir de este código fuente?
+
+<Warning>
+  El backend de verificación todavía está en desarrollo en el indexer. Hasta que se lance, la pestaña Verification muestra "Verification isn't available yet" y los envíos quedan en `pending`. La parte del explorer está completa y construida sobre la [API](/es/api-reference/introduction) publicada, así que se activará sin cambios en el explorer en cuanto el servicio esté en línea.
+</Warning>
+
+## Estados de verificación
+
+| Estado | Significado |
+| --- | --- |
+| **Verified** | El binario desplegado coincide con el código fuente enviado. |
+| **Unverified** | No se ha enviado código fuente para este `wasm_hash`. |
+| **Pending** | Se está compilando y comparando un envío. |
+| **Mismatch** | El código fuente enviado compila, pero no da como resultado el binario desplegado. |
+| **Build failed** | No se pudo compilar el código fuente enviado. |
+| **Not available** | No se puede acceder al servicio de verificación. |
+
+## Navegador de código fuente y diff
+
+Un contrato verificado expone su árbol de código fuente completo. Desde ahí puedes compararlo con cualquier otro `wasm_hash` verificado, que es la forma más rápida de revisar qué cambió en una actualización.
+
+## Enviar código fuente
+
+El formulario acepta una referencia de git o una URL de un archivo comprimido, además del toolchain y el perfil de compilación que se usaron para compilar el contrato. Después de enviarlo, la página consulta periódicamente hasta que llega el resultado, así que no necesitas recargarla.

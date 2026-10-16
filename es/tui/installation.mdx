@@ -1,0 +1,51 @@
+---
+title: "Instalación"
+description: "Instala StellarView TUI desde un binario publicado o desde el código fuente."
+---
+
+## Requisitos
+
+- Un endpoint de Stellar RPC. Los públicos funcionan, como `https://soroban-testnet.stellar.org`.
+- Go 1.25 o posterior, solo si compilas desde el código fuente.
+
+## Instalación
+
+<Tabs>
+  <Tab title="Binario publicado">
+    Descarga el archivo para tu plataforma desde la [página de releases](https://github.com/StellarViewOrg/stellarview-tui/releases). Los releases de la TUI se etiquetan como `stellar-tui-v*`.
+
+    ```bash
+    tar -xzf stellar-tui_<version>_darwin_arm64.tar.gz
+    ./stellar-tui -version
+    ```
+  </Tab>
+  <Tab title="go install desde el código fuente">
+    ```bash
+    git clone https://github.com/StellarViewOrg/stellarview-tui.git
+    cd stellarview-tui/tui
+    make install
+    ```
+    El binario queda en `$(go env GOPATH)/bin/stellar-tui`.
+  </Tab>
+  <Tab title="Compilación local">
+    ```bash
+    git clone https://github.com/StellarViewOrg/stellarview-tui.git
+    cd stellarview-tui/tui
+    make build
+    ./bin/stellar-tui
+    ```
+  </Tab>
+</Tabs>
+
+## Primera ejecución
+
+```bash
+STELLAR_RPC_URL=https://soroban-testnet.stellar.org stellar-tui
+```
+
+El primer inicio crea dos archivos:
+
+- `~/.config/stellar-tui/config.json`, tus perfiles.
+- `~/.config/stellar-tui/cache.db`, el espacio de trabajo y caché local en SQLite.
+
+A continuación, configura un perfil en [Configuración](/es/tui/configuration) o aprende los atajos en [Teclado y comandos](/es/tui/keyboard).

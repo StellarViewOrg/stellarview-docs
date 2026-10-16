@@ -1,0 +1,41 @@
+---
+title: "Pruebas"
+description: "Escribe y ejecuta pruebas para StellarView Explorer con Vitest."
+---
+
+Las pruebas usan [Vitest](https://vitest.dev) con el entorno [happy-dom](https://github.com/capricorn86/happy-dom), que es lo bastante liviano para probar componentes de React sin un navegador real.
+
+## Ejecutar las pruebas
+
+```bash
+bun run test                                     # whole suite, once
+bun --cwd apps/explorer-web x vitest             # watch mode
+bun --cwd apps/explorer-web x vitest run src/lib/utils/entity.test.ts   # one file
+```
+
+## Dónde van las pruebas
+
+Junto al código que prueban, con el nombre `*.test.ts` o `*.test.tsx`:
+
+```text
+apps/explorer-web/src/app/api/toml/
+  route.ts
+  route.test.ts
+```
+
+## Ejemplo
+
+```typescript
+import { describe, it, expect } from "vitest";
+import { detectEntityType } from "./entity";
+
+describe("detectEntityType", () => {
+  it("treats a plain number as a ledger sequence", () => {
+    expect(detectEntityType("52000000")).toBe("ledger");
+  });
+});
+```
+
+## Antes de abrir un pull request
+
+`bun run lint`, `bun run format:check:web` y `bun run test` tienen que pasar. El CI ejecuta las mismas verificaciones.

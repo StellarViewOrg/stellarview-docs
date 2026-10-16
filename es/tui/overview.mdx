@@ -1,0 +1,66 @@
+---
+title: "Descripción general de la TUI"
+sidebarTitle: "Descripción general"
+description: "StellarView TUI es un explorador de terminal para Stellar y Soroban, manejado con el teclado, con un espacio de trabajo local para notas, etiquetas y marcadores."
+---
+
+StellarView TUI lleva el explorador a la shell. Está hecha para investigaciones repetidas: salta de un ledger a una transacción, a una cuenta y al contrato que llamó, sin copiar identificadores entre pestañas del navegador.
+
+<Info>
+  **Estado: v0.1.0.** Es la primera versión independiente. Los comandos y las vistas todavía pueden cambiar entre versiones.
+</Info>
+
+## Por qué un explorador de terminal
+
+Los datos de Stellar forman un grafo. Los ledgers contienen transacciones, las transacciones contienen operaciones, las cuentas tienen activos y los contratos emiten eventos y guardan almacenamiento. La TUI está diseñada para moverse rápido por ese grafo:
+
+- `/` busca desde cualquier lugar.
+- `j` y `k` mueven la selección, `enter` abre, `b` y `f` van atrás y adelante.
+- `y` copia el identificador actual y `ctrl+v` pega uno en la búsqueda.
+
+## Lo más destacado
+
+<CardGroup cols={2}>
+  <Card title="Funciona solo con una URL de RPC" icon="plug">
+    El modo RPC no necesita servicios locales. Apúntalo a cualquier endpoint de Stellar RPC.
+  </Card>
+  <Card title="Espacio de trabajo local" icon="notebook-pen">
+    Marcadores, notas, etiquetas, vistas guardadas y presets de seguimiento, guardados en SQLite en tu máquina.
+  </Card>
+  <Card title="Feed en vivo" icon="radio">
+    Sigue las transacciones a medida que llegan, fíltralas, pausa, repite y exporta a CSV o JSON.
+  </Card>
+  <Card title="Decodificación de Soroban" icon="binary">
+    Specs de contratos, argumentos y resultados de invocaciones, eventos y almacenamiento, decodificados o crudos.
+  </Card>
+</CardGroup>
+
+## Capacidades por modo
+
+La TUI funciona en modo RPC por defecto. Agregar el indexer de la TUI desbloquea el resto. Consulta [Modos de datos](/es/tui/data-modes).
+
+| Datos | Modo RPC (Horizon y RPC) | Con el indexer de la TUI |
+| --- | --- | --- |
+| Consulta de ledgers, transacciones, cuentas y contratos | Sí | Sí |
+| Decodificación de specs de contratos y de operaciones de Soroban | Sí | Sí |
+| Operaciones y línea de tiempo de la cuenta | Sí | Sí |
+| Consulta de activos y holders | Sí | Sí |
+| Eventos de contratos decodificados | Dentro de la ventana de retención de RPC | Historial indexado completo |
+| Almacenamiento de instancia del contrato | Sí | Sí |
+| Escaneo del almacenamiento persistente del contrato | No | Sí |
+| Búsqueda por identificador | Sí, inferida mediante Horizon | Sí, indexada |
+| Búsqueda de texto completo | No | Sí |
+| Feed en vivo por polling | Sí | Sí |
+| Feed en vivo por stream | No | Sí, mediante Redis |
+| Filtros del feed en vivo por contrato, activo u operación | No | Sí |
+| Etiquetas, marcadores, notas y revisitas con caché primero | Sí | Sí |
+
+## Repositorio
+
+El [repositorio de la TUI](https://github.com/StellarViewOrg/stellarview-tui) contiene tres módulos de Go:
+
+| Ruta | Qué es |
+| --- | --- |
+| `tui/` | El cliente de terminal, construido con Bubble Tea y Lip Gloss. |
+| `tui-indexer/` | El backend para lecturas indexadas, búsqueda, líneas de tiempo y el stream en vivo. |
+| `sordecode/` | Una biblioteca compartida de decodificación de Soroban y XDR que usan ambos. |

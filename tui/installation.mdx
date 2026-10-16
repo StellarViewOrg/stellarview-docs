@@ -1,0 +1,51 @@
+---
+title: "Installation"
+description: "Install StellarView TUI from a release binary or from source."
+---
+
+## Requirements
+
+- A Stellar RPC endpoint. Public ones work, such as `https://soroban-testnet.stellar.org`.
+- Go 1.25 or later, only if you build from source.
+
+## Install
+
+<Tabs>
+  <Tab title="Release binary">
+    Download the archive for your platform from the [releases page](https://github.com/StellarViewOrg/stellarview-tui/releases). TUI releases are tagged `stellar-tui-v*`.
+
+    ```bash
+    tar -xzf stellar-tui_<version>_darwin_arm64.tar.gz
+    ./stellar-tui -version
+    ```
+  </Tab>
+  <Tab title="go install from source">
+    ```bash
+    git clone https://github.com/StellarViewOrg/stellarview-tui.git
+    cd stellarview-tui/tui
+    make install
+    ```
+    The binary lands in `$(go env GOPATH)/bin/stellar-tui`.
+  </Tab>
+  <Tab title="Local build">
+    ```bash
+    git clone https://github.com/StellarViewOrg/stellarview-tui.git
+    cd stellarview-tui/tui
+    make build
+    ./bin/stellar-tui
+    ```
+  </Tab>
+</Tabs>
+
+## First run
+
+```bash
+STELLAR_RPC_URL=https://soroban-testnet.stellar.org stellar-tui
+```
+
+The first launch creates two files:
+
+- `~/.config/stellar-tui/config.json`, your profiles.
+- `~/.config/stellar-tui/cache.db`, the local SQLite workspace and cache.
+
+Next, set up a profile in [Configuration](/tui/configuration), or learn the keys in [Keyboard and commands](/tui/keyboard).

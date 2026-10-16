@@ -1,0 +1,78 @@
+---
+title: "Writing docs"
+description: "How to preview, write, and structure pages for the StellarView documentation site."
+---
+
+These docs are built with Mintlify from the [stellarview-docs](https://github.com/StellarViewOrg/stellarview-docs) repository. Every page is an `.mdx` file, and navigation is defined in `docs.json`.
+
+## Preview locally
+
+<Steps>
+  <Step title="Install the CLI">
+    ```bash
+    bun add -g mint
+    ```
+  </Step>
+  <Step title="Run the preview">
+    ```bash
+    mint dev
+    ```
+    Open [http://localhost:3000](http://localhost:3000). Pages reload as you save.
+  </Step>
+  <Step title="Check before you push">
+    ```bash
+    mint validate
+    mint broken-links
+    ```
+    CI runs both on every pull request.
+  </Step>
+</Steps>
+
+## Layout
+
+```text
+docs.json           # Site config and navigation for every language
+index.mdx           # Introduction
+quickstart.mdx
+concepts/           # Cross-cutting concepts
+explorer/  tui/  indexer/
+api-reference/      # Introduction plus openapi.yaml, which generates the endpoint pages
+contributing/
+es/                 # Spanish, mirroring the English tree file for file
+snippets/           # Reusable MDX components
+diagrams/           # D2 sources
+images/diagrams/    # Rendered SVGs, one light and one dark per diagram
+```
+
+## Adding a page
+
+1. Create the `.mdx` file with a `title` and a `description` in the frontmatter. The description becomes the search snippet and the meta description, so write it for a person deciding whether to click.
+2. Add it to `docs.json` in both the `en` and `es` navigation.
+3. Create the Spanish version at the same path under `es/`. If you can't translate it, open the pull request anyway and say so, and a maintainer will help.
+
+## Diagrams
+
+Diagrams are written in [D2](https://d2lang.com). Edit the source in `diagrams/`, then render:
+
+```bash
+./scripts/render-diagrams.sh
+```
+
+This writes a light and a dark SVG for each diagram. Use them in a page with the `Diagram` snippet so the right one appears for the active theme:
+
+```mdx
+import { Diagram } from "/snippets/diagram.mdx";
+
+<Diagram name="data-flow" alt="Describe what the diagram shows" />
+```
+
+Always write a real `alt` text. It's what screen readers and search engines get.
+
+## Style
+
+- **Write for someone in the middle of a task.** Lead with what they need to do, then explain why.
+- **Use sentence case** for titles and headings.
+- **No em dashes.** Use a comma, colon, period, or parentheses.
+- **Be honest about status.** If a feature depends on backend work that hasn't shipped, say so in a callout.
+- **Check commands against the current code** in the relevant repository before documenting them.
+- **Use callouts sparingly:** `<Note>` for context, `<Tip>` for shortcuts, `<Warning>` for things that can break.

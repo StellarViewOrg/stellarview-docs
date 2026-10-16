@@ -1,0 +1,116 @@
+---
+title: "Quickstart"
+description: "Run any StellarView component locally, from the browser explorer to the indexer read API."
+---
+
+Pick the component you want. Each one runs on its own, so you don't need the whole suite to try one part.
+
+<Tabs>
+  <Tab title="Explorer" icon="compass">
+    You need [Bun](https://bun.sh) installed.
+
+    <Steps>
+      <Step title="Clone the repository">
+        ```bash
+        git clone https://github.com/StellarViewOrg/stellarview-explorer.git
+        cd stellarview-explorer
+        ```
+      </Step>
+      <Step title="Install dependencies">
+        ```bash
+        bun install
+        ```
+      </Step>
+      <Step title="Start the dev server">
+        ```bash
+        bun run dev
+        ```
+        Open [http://localhost:3000](http://localhost:3000). The explorer reads from public Horizon and Stellar RPC endpoints, so no backend is required.
+      </Step>
+    </Steps>
+
+    <Tip>
+      Just want to look something up? The hosted explorer is at [stellarview.acachete.xyz](https://stellarview.acachete.xyz).
+    </Tip>
+  </Tab>
+  <Tab title="TUI" icon="terminal">
+    You need Go 1.25 or later.
+
+    <Steps>
+      <Step title="Clone and build">
+        ```bash
+        git clone https://github.com/StellarViewOrg/stellarview-tui.git
+        cd stellarview-tui/tui
+        make build
+        ```
+      </Step>
+      <Step title="Run against testnet">
+        ```bash
+        STELLAR_RPC_URL=https://soroban-testnet.stellar.org ./bin/stellar-tui
+        ```
+        On first run the TUI creates `~/.config/stellar-tui/config.json` and a local SQLite cache next to it.
+      </Step>
+      <Step title="Find your way around">
+        Press `/` to search, `enter` to open, `b` to go back, and `?` for help. See [Keyboard and commands](/tui/keyboard).
+      </Step>
+    </Steps>
+  </Tab>
+  <Tab title="Indexer" icon="database">
+    You need Go 1.25 or later and Docker.
+
+    <Steps>
+      <Step title="Clone and start the infrastructure">
+        ```bash
+        git clone https://github.com/StellarViewOrg/stellarview-indexer.git
+        cd stellarview-indexer
+        docker compose -f infra/docker-compose.yml up -d
+        ```
+        This starts PostgreSQL with TimescaleDB, Redis, and Typesense.
+      </Step>
+      <Step title="Build and migrate">
+        ```bash
+        make build
+        ./bin/indexer migrate
+        ```
+      </Step>
+      <Step title="Ingest testnet">
+        ```bash
+        RPC_ENDPOINT=https://soroban-testnet.stellar.org NETWORK=testnet HTTP_ADDR=:9090 ./bin/indexer live
+        ```
+        `NETWORK` has to match the RPC endpoint, because it sets the passphrase used to compute transaction hashes.
+      </Step>
+      <Step title="Check it">
+        ```bash
+        curl localhost:9090/healthz
+        ```
+        A `200` means the database is reachable and ingestion is advancing.
+      </Step>
+    </Steps>
+  </Tab>
+  <Tab title="API" icon="code">
+    Start the read API next to a running indexer database:
+
+    ```bash
+    API_ADDR=:8080 ./bin/indexer serve
+    ```
+
+    Then query it:
+
+    ```bash
+    curl 'localhost:8080/api/v1/analytics/top?metric=contract_activity&window=24h&limit=10'
+    ```
+
+    Every endpoint, parameter, and response is documented in the [API reference](/api-reference/introduction), with a playground you can point at your own instance.
+  </Tab>
+</Tabs>
+
+## Next steps
+
+<CardGroup cols={2}>
+  <Card title="Networks" icon="network" href="/concepts/networks">
+    Public, Testnet, and Futurenet, and how each tool picks one.
+  </Card>
+  <Card title="Data sources" icon="layers" href="/concepts/data-sources">
+    What comes from Horizon, Stellar RPC, and the indexer.
+  </Card>
+</CardGroup>

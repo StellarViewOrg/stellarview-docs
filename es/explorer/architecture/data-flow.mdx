@@ -1,0 +1,43 @@
+---
+title: "Flujo de datos"
+description: "Cómo se mueven los datos desde Horizon, Stellar RPC y el indexer hasta una página renderizada en StellarView Explorer."
+---
+
+import { Diagram } from "/snippets/diagram.mdx";
+
+Los datos pasan por cuatro capas en su camino desde la red hasta la pantalla.
+
+<Diagram name="data-flow" alt="Horizon y RPC alimentan clientes en caché, que alimentan las definiciones de consultas, luego los hooks y luego los componentes de React." />
+
+## 1. Clientes del SDK
+
+[`lib/stellar/client.ts`](https://github.com/StellarViewOrg/stellarview-explorer/blob/main/apps/explorer-web/src/lib/stellar/client.ts) crea y guarda en caché las instancias del SDK de Stellar:
+
+- `getHorizonClient(network)` devuelve un `Horizon.Server` en caché.
+- `getRpcClient(network)` devuelve un `rpc.Server` en caché.
+
+Los clientes viven en un mapa indexado por red y se reutilizan durante toda la vida de la app.
+
+## 2. Definiciones de consultas
+
+[`lib/stellar/queries.ts`](https://github.com/StellarViewOrg/stellarview-explorer/blob/main/apps/explorer-web/src/lib/stellar/queries.ts) define qué obtener y cuánto tiempo conservarlo:
+
+- `stellarKeys` construye claves de caché jerárquicas, como `["stellar", network, "transactions", hash]`.
+- `stellarQueries` asocia cada clave con su función de obtención y su política de caché.
+
+Las entidades inmutables usan `staleTime: Infinity`. Los datos mutables, como los saldos de las cuentas, usan un stale time de 10 segundos.
+
+## 3. Hooks
+
+[`lib/hooks/`](https://github.com/StellarViewOrg/stellarview-explorer/tree/main/apps/explorer-web/src/lib/hooks) envuelve esas consultas para los componentes:
+
+- Hooks `useStellarQuery`, como `useLatestLedger()` y `useLedger(sequence)`.
+- Hooks `useStreaming`, como `useLedgerStream()`, que usan el streaming de Horizon para datos en vivo.
+
+Cada hook lee la red activa desde `useNetwork()`, así que los componentes nunca la pasan a mano.
+
+Las funcionalidades que dependen del indexer, como la analítica y la verificación, tienen sus propios clientes en [`lib/indexer/`](https://github.com/StellarViewOrg/stellarview-explorer/tree/main/apps/explorer-web/src/lib/indexer).
+
+## 4. Componentes
+
+Los componentes llaman a los hooks y renderizan el resultado. Los estados de carga, error y paginación vienen de TanStack Query.

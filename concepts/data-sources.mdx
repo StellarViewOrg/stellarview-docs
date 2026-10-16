@@ -1,0 +1,42 @@
+---
+title: "Data sources"
+description: "Where StellarView data comes from: Horizon, Stellar RPC, the public S3 data lake, and the StellarView indexers."
+---
+
+StellarView doesn't run a single monolithic backend. Each feature reads from whichever source answers it best, and the UI tells you when a source isn't available instead of showing an empty screen.
+
+## The sources
+
+<AccordionGroup>
+  <Accordion title="Horizon API" icon="server">
+    Stellar's REST API for classic data: ledgers, transactions, operations, effects, accounts, assets, offers, trades, and liquidity pools. It also streams new ledgers and transactions. The explorer uses it for most pages and for the live feed.
+  </Accordion>
+  <Accordion title="Stellar RPC" icon="cpu">
+    The JSON-RPC interface for Soroban: contract code, storage, events, and transaction simulation. The explorer uses it for contract pages and the Read/Write console. The TUI uses it in RPC mode, and the indexer ingests from it.
+  </Accordion>
+  <Accordion title="Public S3 data lake" icon="archive">
+    A public archive of pubnet ledgers going back to ledger 3. The indexer reads it for fast historical backfill. It needs no credentials and has no testnet equivalent.
+  </Accordion>
+  <Accordion title="StellarView Indexer" icon="database">
+    Stores what the network APIs can't serve efficiently: network-wide time series, Top-N rankings, Soroban Domains history, contract specs, and source verification. See the [Indexer overview](/indexer/overview).
+  </Accordion>
+  <Accordion title="TUI indexer" icon="terminal">
+    A backend shaped for terminal views: entity lists, timelines, holders, full-text search, and a Redis stream for the live feed. It lives in the TUI repository.
+  </Accordion>
+</AccordionGroup>
+
+## Which feature uses which source
+
+| Feature | Source | Needs a StellarView backend |
+| --- | --- | --- |
+| Ledgers, transactions, accounts, assets | Horizon | No |
+| Order books, recent trades, pool reserves | Horizon | No |
+| Contract code, storage, events, Read/Write console | Stellar RPC | No |
+| `*.xlm` resolution | Stellar RPC | No |
+| Domains browser and domain history | Indexer | Yes |
+| Network analytics (History, Top N) | Indexer | Yes |
+| Historical candlestick charts | Indexer | Yes, in development |
+| Contract source verification | Indexer | Yes, in development |
+| TUI search, timelines, holders, stream feed | TUI indexer | Yes |
+
+When a feature needs a backend that isn't configured or hasn't shipped yet, the explorer shows a clear "not available yet" state for that panel only. The rest of the page keeps working.

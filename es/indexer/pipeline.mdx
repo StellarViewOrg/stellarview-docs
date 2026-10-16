@@ -1,0 +1,36 @@
+---
+title: "Pipeline de ingesta"
+description: "Cómo StellarView Indexer lee, transforma, almacena y publica los datos de los ledgers de Stellar."
+---
+
+import { Diagram } from "/snippets/diagram.mdx";
+
+El indexer es un pipeline de cuatro etapas: **origen, transformación, almacenamiento y publicación**.
+
+<Diagram name="indexer-pipeline" alt="Los orígenes alimentan los comandos de ingesta, que transforman los ledgers hacia PostgreSQL, Redis y Typesense." />
+
+## Origen
+
+Dos orígenes producen la misma entrada `LedgerCloseMeta`:
+
+- **Stellar RPC**, para la ingesta en vivo y los backfills por rango en cualquier red.
+- **El data lake público de S3**, para obtener rápido el historial de pubnet sin depender de RPC.
+
+## Transformación
+
+Cada ledger se descompone en ledgers, transacciones, operaciones y efectos. La actividad de Soroban requiere trabajo adicional:
+
+- Los [specs de contratos](/es/indexer/contract-spec) se obtienen y decodifican para cada contrato recién desplegado, lo que además clasifica los tokens SEP-41 y los NFT SEP-50.
+- Los [eventos de contratos](/es/indexer/contract-events) se extraen del meta de la transacción y se decodifican.
+- Los [eventos de tokens](/es/indexer/token-events) se generan en el formato unificado de CAP-67, tanto para activos clásicos como para tokens de Soroban.
+- Se siguen los eventos del registro de Soroban Domains para mantener el propietario y el destino actuales de cada nombre.
+
+La obtención de specs se ejecuta en segundo plano, así que una llamada RPC lenta nunca bloquea la ingesta de ledgers.
+
+## Almacenamiento
+
+Todo termina en PostgreSQL con TimescaleDB. Los continuous aggregates agrupan las filas crudas en los buckets por hora, día y semana que lee la API de analíticas.
+
+## Publicación
+
+La actividad nueva se publica en Redis para los consumidores en tiempo real, y las entidades buscables se indexan en Typesense. Ambos son opcionales, así que la falta de Redis o Typesense nunca detiene la ingesta.

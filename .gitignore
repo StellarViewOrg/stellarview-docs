@@ -1,4 +1,3 @@
 node_modules/
-dist/
-.astro/
+.mintlify/
 .DS_Store
