@@ -3,20 +3,26 @@
   "extends": ["config:recommended"],
   "timezone": "UTC",
   "schedule": ["before 6am on monday"],
-  "prConcurrentLimit": 5,
+  "prConcurrentLimit": 3,
   "packageRules": [
     {
-      "matchManagers": ["npm"],
-      "matchUpdateTypes": ["minor", "patch"],
-      "groupName": "minor and patch dependencies"
+      "description": "Group every non-major update into one PR",
+      "matchUpdateTypes": ["minor", "patch", "pin", "digest"],
+      "groupName": "all non-major dependencies",
+      "groupSlug": "all-non-major"
     },
     {
-      "matchManagers": ["github-actions"],
-      "groupName": "github actions"
+      "description": "Group every major update into one PR",
+      "matchUpdateTypes": ["major"],
+      "groupName": "all major dependencies",
+      "groupSlug": "all-major"
     }
   ],
   "lockFileMaintenance": {
     "enabled": true,
     "schedule": ["before 6am on monday"]
+  },
+  "vulnerabilityAlerts": {
+    "groupName": "security updates"
   }
 }
