@@ -1,0 +1,63 @@
+---
+title: "Configuración"
+description: "Configura los perfiles, las variables de entorno y el caché local de StellarView TUI."
+---
+
+## De dónde se lee la configuración
+
+La TUI usa el primer archivo de configuración que encuentra, en este orden:
+
+1. La ruta pasada con `-config <path>`
+2. `STELLAR_TUI_CONFIG`
+3. `./config.json` en el directorio actual
+4. `~/.config/stellar-tui/config.json`
+
+`labels.toml` sigue el mismo orden con `-labels` y `STELLAR_TUI_LABELS`.
+
+## Partir de los ejemplos
+
+```bash
+mkdir -p ~/.config/stellar-tui
+cp config/config.example.json ~/.config/stellar-tui/config.json
+cp labels.example.toml ~/.config/stellar-tui/labels.toml
+```
+
+Ejecuta estos comandos desde el directorio `tui/` del repositorio. Un perfil define, entre otras cosas, `rpc_endpoint`, `indexer_url` y `redis_url`.
+
+## Variables de entorno
+
+Las variables de entorno sobrescriben el perfil activo durante una sesión.
+
+| Variable | Descripción |
+| --- | --- |
+| `STELLAR_RPC_URL` | Endpoint RPC. |
+| `STELLAR_NETWORK` | `public`, `testnet` o `futurenet`. |
+| `STELLAR_BACKEND_MODE` | `rpc`, `hybrid` o `indexer`. |
+| `STELLAR_HORIZON_URL` | Endpoint de Horizon. Si no se define, se resuelve según la red. |
+| `STELLAR_INDEXER_URL` | URL de la API de lectura del indexer de la TUI. |
+| `STELLAR_REDIS_URL` | URL de Redis para el feed en vivo por streaming. |
+| `STELLAR_TUI_CONFIG` | Ruta explícita del archivo de configuración. |
+| `STELLAR_TUI_PROFILE` | Nombre del perfil activo. |
+| `STELLAR_TUI_LABELS` | Ruta explícita del archivo de etiquetas. |
+
+```bash
+STELLAR_RPC_URL=https://soroban-testnet.stellar.org \
+STELLAR_NETWORK=testnet \
+./bin/stellar-tui
+```
+
+## Consultas con caché primero
+
+Las entidades que ya visitaste se cargan desde el caché local en SQLite antes de que la TUI llame a la red.
+
+1. **Acierto reciente:** la copia en caché se abre al instante y el encabezado muestra `cache:hit`.
+2. **Consulta a la red:** si no, la TUI lee desde el backend y guarda el resultado.
+3. **Respaldo desactualizado:** si el backend falla, se muestra una copia anterior con `cache:stale`.
+
+| Entidad | Vigencia en caché |
+| --- | --- |
+| Ledger, transacción | Permanente, porque nunca cambian |
+| Cuenta | 5 minutos |
+| Activo, contrato | 10 minutos |
+
+Presiona `r` en la pantalla de consulta para saltarte el caché. `open cache` y `open recent` vuelven a abrir a propósito las entradas guardadas.

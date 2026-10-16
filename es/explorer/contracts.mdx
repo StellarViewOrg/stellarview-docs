@@ -1,0 +1,36 @@
+---
+title: "Contratos inteligentes"
+description: "Inspecciona contratos inteligentes de Soroban en StellarView Explorer y llama a sus funciones desde la consola Read/Write."
+---
+
+Soroban es la plataforma de contratos inteligentes de Stellar. Los contratos se identifican por un ID que empieza con `C`.
+
+## Encontrar un contrato
+
+Pega un ID de contrato en la barra de búsqueda, abre **Contratos** o busca un dominio que se resuelva a un contrato.
+
+## Detalles del contrato
+
+- **ID del contrato**
+- **Código:** el Wasm desplegado y su hash.
+- **Almacenamiento:** los datos clave-valor que guarda el contrato.
+- **Eventos** emitidos durante la ejecución, cada uno con sus topics, datos, transacción y ledger.
+
+Si el contrato es un Stellar Asset Contract, la página enlaza al activo clásico que envuelve.
+
+<Note>
+  Los datos de los contratos vienen de Stellar RPC. Los proveedores de RPC conservan los eventos durante una ventana de retención limitada, así que es posible que los eventos más antiguos no aparezcan a menos que el indexer los haya guardado.
+</Note>
+
+## Consola Read/Write
+
+La pestaña **Lectura/Escritura** decodifica la especificación del contrato en el navegador, incluidos structs, unions, enums y enums de error, y genera un formulario para cada función.
+
+- Las llamadas de **Read** se simulan contra Stellar RPC. No necesitas wallet.
+- Las llamadas de **Write** necesitan una wallet conectada, como Freighter o cualquier wallet compatible con Stellar Wallets Kit, para firmar y enviar.
+
+Los errores del contrato aparecen como mensajes en lenguaje claro. La traza completa se registra en la consola del navegador.
+
+## Verificación
+
+La pestaña **Verificación** vincula el Wasm desplegado con su código fuente público cuando existe una verificación. Consulta [Verificación de contratos](/es/explorer/contract-verification).

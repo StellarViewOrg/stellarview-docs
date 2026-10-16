@@ -1,0 +1,6 @@
+export const Diagram = ({ name, alt }) => (
+  <Frame>
+    <img className="block dark:hidden" src={`/images/diagrams/${name}-light.svg`} alt={alt} />
+    <img className="hidden dark:block" src={`/images/diagrams/${name}-dark.svg`} alt={alt} />
+  </Frame>
+);

@@ -1,0 +1,12 @@
+# React context providers, outermost first. Inner providers can read outer ones.
+theme: ThemeProvider {
+  query: QueryProvider {
+    network: NetworkProvider {
+      devmode: DeveloperModeProvider {
+        analytics: AnalyticsModeProvider {
+          app: App content
+        }
+      }
+    }
+  }
+}

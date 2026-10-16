@@ -1,0 +1,147 @@
+---
+title: "Eventos de contratos"
+description: Cómo el indexer extrae, decodifica y guarda los eventos crudos de contratos de Soroban emitidos durante la ejecución de transacciones.
+---
+
+## Qué permite
+
+Cualquier contrato inteligente de Soroban puede emitir eventos arbitrarios durante su ejecución. Son el mecanismo principal que usan los contratos para avisar al exterior sobre cambios de estado: un DEX emite un evento `swap`, un contrato de NFT emite un evento `transfer`, un contrato de gobernanza emite un evento `vote`.
+
+Sin indexarlos, es imposible construir un feed de actividad de un contrato, buscar eventos por topic o reconstruir lo que un contrato ha hecho a lo largo del tiempo.
+
+Con esta funcionalidad, el explorador puede:
+
+- Mostrar el log completo de eventos de cualquier contrato, paginado y con búsqueda
+- Mostrar los topics decodificados en formato legible junto al XDR crudo
+- Filtrar eventos por el texto del topic (por ejemplo, encontrar todos los eventos `swap` de un contrato DEX)
+- Enlazar cada evento con la transacción y el ledger que lo produjeron
+
+## Cómo funciona
+
+Los eventos de contratos de Soroban viven dentro del XDR `TransactionMeta` que se devuelve en el campo `resultMetaXdr` de `getTransactions`. Su ubicación depende de la versión del meta:
+
+| Versión del meta | Ubicación de los eventos |
+|---|---|
+| V3 | `meta.V3.SorobanMeta.Events[]` |
+| V4 | `meta.V4.Operations[i].Events[]` (por operación) |
+
+Para cada transacción, `ContractEventsFromTransaction` en `transform/contract_events.go` decodifica el meta, recorre la lista de eventos y, para cada `ContractEvent`:
+
+1. Codifica la lista de topics como un arreglo JSON de cadenas XDR en base64 (`topics_xdr`)
+2. Codifica el valor del evento como XDR en base64 (`value_xdr`)
+3. Convierte los topics en cadenas legibles con `scValToString` y los guarda en `topic_1` a `topic_4` para búsquedas indexadas
+4. Guarda el valor decodificado como una cadena JSON (`value_decoded`)
+
+`scValToString` maneja todos los tipos de ScVal: símbolos, cadenas, booleanos, enteros (i64, u64, i128, u128), direcciones (direcciones G de cuentas y direcciones C de contratos), bytes, maps y vecs.
+
+Los eventos se insertan por lotes en la hypertable `contract_events` de TimescaleDB después de cada ledger.
+
+**Ruta del código:**
+
+```
+source/rpc.go (getTransactions resultMetaXdr)
+  → transform/contract_events.go ContractEventsFromTransaction()
+    → contractEventFromXDR() per event
+      → store/postgres.go InsertContractEventBatch()
+        → contract_events (TimescaleDB hypertable)
+```
+
+## Esquema
+
+```sql
+contract_events (
+  contract_id       TEXT,        -- C-address of the emitting contract
+  transaction_hash  TEXT,        -- source transaction
+  ledger_sequence   INT,
+  type              SMALLINT,    -- 0 contract, 1 system, 2 diagnostic
+  topic_1..topic_4  TEXT,        -- decoded, indexed for search
+  topics_xdr        TEXT,        -- JSON array of base64 XDR strings
+  value_xdr         TEXT,        -- base64 XDR of the event value
+  topics_decoded    TEXT,        -- JSON array of human-readable strings
+  value_decoded     TEXT,        -- human-readable value string
+  created_at        TIMESTAMPTZ
+)
+```
+
+## Cómo verificar que funciona
+
+### Requisitos previos
+
+Servicios de Docker en ejecución y migraciones aplicadas. La testnet tiene contratos de Soroban activos, así que cualquier rango de ledgers con actividad de Soroban producirá eventos.
+
+### 1. Ejecuta el indexer
+
+```bash
+RPC_ENDPOINT=https://soroban-testnet.stellar.org NETWORK=testnet ./bin/indexer live
+```
+
+### 2. Comprueba que llegaron los eventos de contratos
+
+```bash
+docker compose -f infra/docker-compose.yml exec postgres psql -U explorer -d stellar_explorer -c "
+SELECT contract_id, topic_1, topic_2, topic_3, value_decoded, transaction_hash
+FROM contract_events
+ORDER BY created_at DESC
+LIMIT 10;
+"
+```
+
+La mayoría de los eventos tendrá un `topic_1` que corresponde al nombre de la función o del evento (por ejemplo, `transfer`, `swap`, `mint`).
+
+### 3. Filtra por topic para encontrar tipos de eventos específicos
+
+```bash
+# Find all transfer events across all contracts
+docker compose -f infra/docker-compose.yml exec postgres psql -U explorer -d stellar_explorer -c "
+SELECT contract_id, topic_1, topic_2, topic_3, value_decoded
+FROM contract_events
+WHERE topic_1 = 'transfer'
+ORDER BY created_at DESC
+LIMIT 10;
+"
+```
+
+### 4. Inspecciona el XDR crudo junto a la salida decodificada
+
+```bash
+docker compose -f infra/docker-compose.yml exec postgres psql -U explorer -d stellar_explorer -c "
+SELECT
+  contract_id,
+  topics_decoded,
+  value_decoded,
+  topics_xdr
+FROM contract_events
+WHERE topic_1 IS NOT NULL
+ORDER BY created_at DESC
+LIMIT 5;
+"
+```
+
+### 5. Cuenta los eventos por contrato
+
+```bash
+docker compose -f infra/docker-compose.yml exec postgres psql -U explorer -d stellar_explorer -c "
+SELECT contract_id, COUNT(*) as event_count
+FROM contract_events
+GROUP BY contract_id
+ORDER BY event_count DESC
+LIMIT 10;
+"
+```
+
+### 6. Ejecuta las pruebas unitarias
+
+```bash
+go test ./internal/transform/ -run TestScValToString -v
+go test ./internal/transform/ -run TestContractEvents -v
+```
+
+Estas pruebas cubren la decodificación de ScVal para todos los tipos primitivos (symbol, bool, void, i64, dirección de cuenta) y la ruta rápida de meta vacío.
+
+## Notas
+
+- Los eventos sin `contract_id` en el XDR se omiten (no se pueden atribuir a un contrato).
+- `topic_1` a `topic_4` cubren los primeros cuatro topics. Si un contrato emite más de cuatro, los adicionales solo quedan en `topics_decoded` y `topics_xdr`.
+- Los eventos de diagnóstico (`type = 2`) se incluyen. Normalmente los emite el propio runtime de Soroban, no el código del contrato.
+- Una transacción cuya ejecución falla no produce eventos de contrato (las llamadas fallidas de Soroban no emiten eventos).
+- Los fallos al extraer eventos de una transacción no son fatales: el ledger se ingiere completo de todos modos y se registra una advertencia.

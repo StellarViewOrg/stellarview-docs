@@ -1,0 +1,61 @@
+---
+title: "Referencia de la API"
+sidebarTitle: "Introducción"
+description: "API HTTP de StellarView Indexer: analítica de red, Soroban Domains y verificación del código fuente de contratos."
+---
+
+El indexer expone una API HTTP pequeña y orientada a la lectura. El explorer ya la usa, y también puedes usarla desde tus propias herramientas.
+
+<Info>
+  Todavía no hay una instancia pública alojada. Ejecuta el indexer por tu cuenta con la [guía de inicio rápido](/es/quickstart) y luego apunta el playground de cada página de endpoint a tu servidor.
+</Info>
+
+## URLs base
+
+La API se reparte entre los dos procesos del indexer.
+
+| Proceso | Dirección predeterminada | Rutas |
+| --- | --- | --- |
+| `live` | `HTTP_ADDR` o `METRICS_ADDR`, por ejemplo `http://localhost:9090` | `/v1/domains`, `/v1/verify`, `/healthz` |
+| `serve` | `API_ADDR`, por defecto `http://localhost:8080` | `/api/v1/analytics/*`, `/healthz` |
+
+Consulta [Configuración](/es/indexer/configuration) para ver cómo exponer cada uno.
+
+## Autenticación
+
+No hay. Todos los endpoints son públicos y de solo lectura, excepto `POST /v1/verify`, que recibe solicitudes de verificación.
+
+## Límites de tasa
+
+`POST /v1/verify` está limitado a 10 solicitudes por IP por minuto. Si superas el límite, devuelve `429`. La ventana es fija, así que espera al minuto siguiente antes de reintentar. El indexer no limita la tasa de los endpoints de lectura, así que coloca un proxy delante de cualquier despliegue público.
+
+## Errores
+
+Los errores de analítica y de verificación devuelven JSON con un campo `error` y el código de estado HTTP correspondiente:
+
+```json
+{ "error": "invalid parameter: limit 500 out of range [1, 100]" }
+```
+
+Los endpoints de dominios nunca fallan por la entrada. Un nombre o una dirección desconocidos devuelven `200` con un resultado vacío, e `indexed: false` significa que la ingesta todavía no ha comenzado.
+
+## Endpoints
+
+<CardGroup cols={2}>
+  <Card title="Analítica" icon="chart-line" href="/api-reference/analytics/network-metric-time-series">
+    Series de tiempo de `tx_count`, volumen, comisiones, cuentas y suministro de activos, además de rankings Top-N en 24h, 7d o 30d.
+  </Card>
+  <Card title="Dominios" icon="at-sign" href="/api-reference/domains/list-domains-or-reverse-lookup-by-address">
+    Resuelve nombres `*.xlm`, haz búsquedas inversas por dirección, lista registros y consulta el historial de eventos.
+  </Card>
+  <Card title="Verificación" icon="shield-check" href="/api-reference/verification/submit-contract-source-for-verification">
+    Envía el código fuente de un contrato y consulta su estado y sus archivos fuente.
+  </Card>
+  <Card title="Salud" icon="heart-pulse" href="/api-reference/health/readiness-probe">
+    Liveness y readiness de ambos procesos.
+  </Card>
+</CardGroup>
+
+## OpenAPI
+
+La especificación completa está en el repositorio de la documentación, en [`api-reference/openapi.yaml`](https://github.com/StellarViewOrg/stellarview-docs/blob/main/api-reference/openapi.yaml). Úsala para generar un cliente en cualquier lenguaje.

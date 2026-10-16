@@ -1,0 +1,26 @@
+---
+title: "Analítica de red"
+description: "Actividad de toda la red Stellar en StellarView Explorer: cantidad de transacciones, volumen, comisiones, cuentas, suministro de activos y rankings Top-N."
+---
+
+La sección **Analíticas** grafica la actividad de toda la red. Los datos vienen de la [API de analítica](/es/api-reference/introduction) del indexer.
+
+## History
+
+Series de tiempo con resolución por hora, por día o por semana para:
+
+- Cantidad de transacciones
+- Volumen de transacciones (transferencias nativas de XLM)
+- Comisiones clásicas y de Soroban
+- Cuentas activas y cuentas nuevas
+- Suministro de activos, sumado entre todos los activos o filtrado a un activo por código y emisor, o por ID de contrato de Soroban
+
+Exporta cualquier gráfico como CSV o JSON.
+
+## Top N
+
+Tablas de ranking sobre una ventana de tiempo seleccionable: los contratos más activos, los activos más activos y las comisiones más altas.
+
+## Cuando falta una métrica
+
+Cada gráfico consulta al indexer por separado. Si una métrica todavía no se ha agregado, solo ese gráfico muestra "Not available yet", y los demás siguen cargando.

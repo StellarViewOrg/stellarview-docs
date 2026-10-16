@@ -1,0 +1,46 @@
+---
+title: "Networks"
+description: "How StellarView handles Public, Testnet, and Futurenet across the explorer, TUI, and indexer."
+---
+
+Stellar runs three networks, and every StellarView component can work with any of them.
+
+| Network | What it's for |
+| --- | --- |
+| **Public** | Mainnet. Real accounts, real assets, real value. |
+| **Testnet** | A stable sandbox for building and testing. Accounts can be funded for free with Friendbot. |
+| **Futurenet** | An experimental network that previews protocol changes before they reach Testnet. |
+
+## In the explorer
+
+The active network is part of every URL, right after the locale:
+
+```text
+/en/public/transactions
+/en/testnet/transactions
+/en/futurenet/transactions
+```
+
+Switch with the network selector in the header. Because the network lives in the path, a bookmark or a shared link always opens on the network it was copied from.
+
+<Note>
+  A few features depend on contracts that only exist on some networks. Soroban Domains resolution, for example, is not available on Futurenet because the registry contract has no deployment there.
+</Note>
+
+## In the TUI
+
+Set the network per profile in `config.json`, or override it for one session:
+
+```bash
+STELLAR_NETWORK=testnet ./bin/stellar-tui
+```
+
+See [Configuration](/tui/configuration) for profiles and the full list of variables.
+
+## In the indexer
+
+The indexer ingests one network per process, chosen with `NETWORK` (`public`, `testnet`, or `futurenet`). It defaults to `public`.
+
+<Warning>
+  `NETWORK` must match the network of `RPC_ENDPOINT`. The indexer uses it to pick the network passphrase, and a mismatch produces wrong transaction hashes.
+</Warning>

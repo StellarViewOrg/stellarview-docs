@@ -1,0 +1,33 @@
+# How data moves from the network to a rendered explorer page.
+direction: right
+
+network: Stellar network {
+  horizon: Horizon API
+  rpc: Stellar RPC
+}
+
+indexer: StellarView Indexer
+
+client: "lib/stellar/client.ts" {
+  horizon: getHorizonClient(network)
+  rpc: getRpcClient(network)
+}
+
+queries: "lib/stellar/queries.ts" {
+  keys: stellarKeys
+  options: stellarQueries
+}
+
+hooks: "lib/hooks/" {
+  query: useStellarQuery
+  stream: useStreaming
+}
+
+ui: React components
+
+network.horizon -> client.horizon: REST and streaming
+network.rpc -> client.rpc: JSON-RPC
+client -> queries: cached clients per network
+indexer -> hooks: analytics, domains, verification
+queries -> hooks: query options and cache keys
+hooks -> ui: data, loading, and error state

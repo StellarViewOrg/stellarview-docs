@@ -1,0 +1,41 @@
+---
+title: "Testing"
+description: "Write and run tests for StellarView Explorer with Vitest."
+---
+
+Tests use [Vitest](https://vitest.dev) with the [happy-dom](https://github.com/capricorn86/happy-dom) environment, which is light enough to test React components without a real browser.
+
+## Running tests
+
+```bash
+bun run test                                     # whole suite, once
+bun --cwd apps/explorer-web x vitest             # watch mode
+bun --cwd apps/explorer-web x vitest run src/lib/utils/entity.test.ts   # one file
+```
+
+## Where tests go
+
+Next to the code they test, named `*.test.ts` or `*.test.tsx`:
+
+```text
+apps/explorer-web/src/app/api/toml/
+  route.ts
+  route.test.ts
+```
+
+## Example
+
+```typescript
+import { describe, it, expect } from "vitest";
+import { detectEntityType } from "./entity";
+
+describe("detectEntityType", () => {
+  it("treats a plain number as a ledger sequence", () => {
+    expect(detectEntityType("52000000")).toBe("ledger");
+  });
+});
+```
+
+## Before you open a pull request
+
+`bun run lint`, `bun run format:check:web`, and `bun run test` must all pass. CI runs the same checks.

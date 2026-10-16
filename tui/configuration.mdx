@@ -1,0 +1,63 @@
+---
+title: "Configuration"
+description: "Configure StellarView TUI profiles, environment variables, and the local cache."
+---
+
+## Where config is read from
+
+The TUI uses the first config file it finds, in this order:
+
+1. The path passed with `-config <path>`
+2. `STELLAR_TUI_CONFIG`
+3. `./config.json` in the current directory
+4. `~/.config/stellar-tui/config.json`
+
+`labels.toml` follows the same order with `-labels` and `STELLAR_TUI_LABELS`.
+
+## Starting from the examples
+
+```bash
+mkdir -p ~/.config/stellar-tui
+cp config/config.example.json ~/.config/stellar-tui/config.json
+cp labels.example.toml ~/.config/stellar-tui/labels.toml
+```
+
+Run these from the `tui/` directory of the repository. A profile sets, among other things, `rpc_endpoint`, `indexer_url`, and `redis_url`.
+
+## Environment variables
+
+Environment variables override the active profile for one session.
+
+| Variable | Description |
+| --- | --- |
+| `STELLAR_RPC_URL` | RPC endpoint. |
+| `STELLAR_NETWORK` | `public`, `testnet`, or `futurenet`. |
+| `STELLAR_BACKEND_MODE` | `rpc`, `hybrid`, or `indexer`. |
+| `STELLAR_HORIZON_URL` | Horizon endpoint. Resolved per network when unset. |
+| `STELLAR_INDEXER_URL` | TUI indexer read API URL. |
+| `STELLAR_REDIS_URL` | Redis URL for the streaming live feed. |
+| `STELLAR_TUI_CONFIG` | Explicit config file path. |
+| `STELLAR_TUI_PROFILE` | Active profile name. |
+| `STELLAR_TUI_LABELS` | Explicit labels file path. |
+
+```bash
+STELLAR_RPC_URL=https://soroban-testnet.stellar.org \
+STELLAR_NETWORK=testnet \
+./bin/stellar-tui
+```
+
+## Cache-first lookups
+
+Entities you've already visited load from the local SQLite cache before the TUI calls the network.
+
+1. **Fresh hit:** the cached copy opens instantly and the header shows `cache:hit`.
+2. **Network fetch:** otherwise the TUI reads from the backend and stores the result.
+3. **Stale fallback:** if the backend fails, an older copy is shown with `cache:stale`.
+
+| Entity | Cache lifetime |
+| --- | --- |
+| Ledger, transaction | Permanent, since they never change |
+| Account | 5 minutes |
+| Asset, contract | 10 minutes |
+
+Press `r` on the lookup screen to skip the cache. `open cache` and `open recent` revisit stored entries on purpose.

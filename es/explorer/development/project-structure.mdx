@@ -1,0 +1,54 @@
+---
+title: "Estructura del proyecto"
+description: "Cómo está organizado el código de StellarView Explorer."
+---
+
+El repositorio del explorer es un workspace de Bun con una sola app, `apps/explorer-web`. El indexer, la TUI y esta documentación viven cada uno en su propio repositorio.
+
+```text
+stellarview-explorer/
+├── apps/
+│   └── explorer-web/   # Next.js app
+├── docs/diagrams/      # Diagrams used by the README
+├── .github/workflows/  # CI
+└── package.json        # Workspace root and scripts
+```
+
+## Dentro de `apps/explorer-web/src`
+
+```text
+src/
+├── app/                # App Router: [locale]/[network]/(explorer)/..., plus api/ routes
+├── components/         # UI, grouped by domain
+│   ├── ui/             # shadcn/ui primitives
+│   ├── layout/         # Header, navigation, sidebars
+│   ├── accounts/  assets/  contracts/  domains/  operations/  pairs/  transactions/
+│   ├── cards/  charts/  stats/  search/  glossary/  common/
+├── lib/
+│   ├── stellar/        # SDK clients, queries, contract client, spec decoder, domains
+│   ├── indexer/        # Clients for indexer-backed features
+│   ├── hooks/          # Data and UI hooks
+│   ├── providers/      # Context providers
+│   ├── constants/      # App and network constants
+│   └── utils/          # Formatting and entity helpers
+├── i18n/               # next-intl configuration
+└── types/              # Shared TypeScript types
+```
+
+Las traducciones viven en `apps/explorer-web/messages/*.json`.
+
+## Constantes principales
+
+| Constante | Valor | Propósito |
+| --- | --- | --- |
+| `STROOPS_PER_XLM` | `10_000_000` | Convierte stroops a XLM. |
+| `DEFAULT_PAGE_SIZE` | `20` | Elementos por lista paginada. |
+| `LIVE_LEDGER_POLL_INTERVAL` | `5000` ms | Intervalo de consulta para datos en vivo. |
+| `STALE_TIME` | `10_000` ms | Stale time predeterminado para datos mutables. |
+
+## Stack
+
+- **Framework:** Next.js 16 (App Router) y React 19
+- **Datos:** TanStack Query y el SDK de JavaScript de Stellar
+- **Interfaz:** shadcn/ui sobre Tailwind CSS 4, Recharts para los gráficos
+- **Alias de ruta:** `@/` apunta a `apps/explorer-web/src/`

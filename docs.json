@@ -1,0 +1,486 @@
+{
+  "$schema": "https://mintlify.com/docs.json",
+  "theme": "maple",
+  "name": "StellarView",
+  "description": "Documentation for StellarView, the open-source explorer suite for Stellar: web explorer, terminal explorer, indexer, and read API.",
+  "colors": {
+    "primary": "#0077ce",
+    "light": "#00c6ff",
+    "dark": "#0a84d6"
+  },
+  "logo": {
+    "light": "/logo/light.svg",
+    "dark": "/logo/dark.svg",
+    "href": "/"
+  },
+  "favicon": "/favicon.svg",
+  "appearance": {
+    "default": "system"
+  },
+  "icons": {
+    "library": "lucide"
+  },
+  "fonts": {
+    "family": "Inter"
+  },
+  "styling": {
+    "eyebrows": "breadcrumbs",
+    "codeblocks": "system"
+  },
+  "navbar": {
+    "links": [
+      {
+        "label": "GitHub",
+        "href": "https://github.com/StellarViewOrg"
+      }
+    ],
+    "primary": {
+      "type": "button",
+      "label": "Open Explorer",
+      "href": "https://stellarview.acachete.xyz"
+    }
+  },
+  "navigation": {
+    "global": {
+      "anchors": [
+        {
+          "anchor": "Telegram",
+          "icon": "send",
+          "href": "https://t.me/stellarviewdata"
+        }
+      ]
+    },
+    "languages": [
+      {
+        "language": "en",
+        "default": true,
+        "tabs": [
+          {
+            "tab": "Get started",
+            "icon": "rocket",
+            "groups": [
+              {
+                "group": "Get started",
+                "pages": [
+                  "index",
+                  "quickstart"
+                ]
+              },
+              {
+                "group": "Concepts",
+                "pages": [
+                  "concepts/networks",
+                  "concepts/data-sources"
+                ]
+              }
+            ]
+          },
+          {
+            "tab": "Explorer",
+            "icon": "compass",
+            "groups": [
+              {
+                "group": "Overview",
+                "pages": [
+                  "explorer/overview"
+                ]
+              },
+              {
+                "group": "Guides",
+                "pages": [
+                  "explorer/transactions",
+                  "explorer/accounts",
+                  "explorer/assets",
+                  "explorer/ledgers",
+                  "explorer/contracts",
+                  "explorer/contract-verification",
+                  "explorer/domains",
+                  "explorer/dex",
+                  "explorer/analytics",
+                  "explorer/watchlist"
+                ]
+              },
+              {
+                "group": "Architecture",
+                "pages": [
+                  "explorer/architecture/overview",
+                  "explorer/architecture/data-flow",
+                  "explorer/architecture/routing",
+                  "explorer/architecture/providers"
+                ]
+              },
+              {
+                "group": "Development",
+                "pages": [
+                  "explorer/development/setup",
+                  "explorer/development/project-structure",
+                  "explorer/development/testing",
+                  "explorer/development/i18n"
+                ]
+              }
+            ]
+          },
+          {
+            "tab": "TUI",
+            "icon": "terminal",
+            "groups": [
+              {
+                "group": "Overview",
+                "pages": [
+                  "tui/overview",
+                  "tui/installation"
+                ]
+              },
+              {
+                "group": "Using the TUI",
+                "pages": [
+                  "tui/configuration",
+                  "tui/data-modes",
+                  "tui/keyboard",
+                  "tui/workspace",
+                  "tui/troubleshooting"
+                ]
+              },
+              {
+                "group": "Architecture",
+                "pages": [
+                  "tui/architecture"
+                ]
+              },
+              {
+                "group": "Roadmap",
+                "pages": [
+                  "tui/roadmap/product",
+                  "tui/roadmap/technical"
+                ]
+              }
+            ]
+          },
+          {
+            "tab": "Indexer",
+            "icon": "database",
+            "groups": [
+              {
+                "group": "Overview",
+                "pages": [
+                  "indexer/overview",
+                  "indexer/running",
+                  "indexer/configuration"
+                ]
+              },
+              {
+                "group": "Internals",
+                "pages": [
+                  "indexer/pipeline",
+                  "indexer/contract-spec",
+                  "indexer/contract-events",
+                  "indexer/token-events",
+                  "indexer/observability"
+                ]
+              }
+            ]
+          },
+          {
+            "tab": "API reference",
+            "icon": "code",
+            "groups": [
+              {
+                "group": "API reference",
+                "pages": [
+                  "api-reference/introduction"
+                ]
+              },
+              {
+                "group": "Domains",
+                "openapi": "api-reference/openapi.yaml",
+                "pages": [
+                  "GET /v1/domains",
+                  "GET /v1/domains/{name}",
+                  "GET /v1/domains/{name}/events"
+                ]
+              },
+              {
+                "group": "Verification",
+                "openapi": "api-reference/openapi.yaml",
+                "pages": [
+                  "POST /v1/verify",
+                  "GET /v1/verify/contract/{contractId}",
+                  "GET /v1/verify/wasm/{wasmHash}",
+                  "GET /v1/verify/wasm/{wasmHash}/source",
+                  "GET /v1/verify/wasm/{wasmHash}/source/{path}"
+                ]
+              },
+              {
+                "group": "Analytics",
+                "openapi": "api-reference/openapi.yaml",
+                "pages": [
+                  "GET /api/v1/analytics/timeseries",
+                  "GET /api/v1/analytics/top"
+                ]
+              },
+              {
+                "group": "Health",
+                "openapi": "api-reference/openapi.yaml",
+                "pages": [
+                  "GET /healthz"
+                ]
+              }
+            ]
+          },
+          {
+            "tab": "Contribute",
+            "icon": "git-pull-request",
+            "groups": [
+              {
+                "group": "Contribute",
+                "pages": [
+                  "contributing/overview",
+                  "contributing/docs"
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "language": "es",
+        "tabs": [
+          {
+            "tab": "Primeros pasos",
+            "icon": "rocket",
+            "groups": [
+              {
+                "group": "Primeros pasos",
+                "pages": [
+                  "es/index",
+                  "es/quickstart"
+                ]
+              },
+              {
+                "group": "Conceptos",
+                "pages": [
+                  "es/concepts/networks",
+                  "es/concepts/data-sources"
+                ]
+              }
+            ]
+          },
+          {
+            "tab": "Explorer",
+            "icon": "compass",
+            "groups": [
+              {
+                "group": "Resumen",
+                "pages": [
+                  "es/explorer/overview"
+                ]
+              },
+              {
+                "group": "Guías",
+                "pages": [
+                  "es/explorer/transactions",
+                  "es/explorer/accounts",
+                  "es/explorer/assets",
+                  "es/explorer/ledgers",
+                  "es/explorer/contracts",
+                  "es/explorer/contract-verification",
+                  "es/explorer/domains",
+                  "es/explorer/dex",
+                  "es/explorer/analytics",
+                  "es/explorer/watchlist"
+                ]
+              },
+              {
+                "group": "Arquitectura",
+                "pages": [
+                  "es/explorer/architecture/overview",
+                  "es/explorer/architecture/data-flow",
+                  "es/explorer/architecture/routing",
+                  "es/explorer/architecture/providers"
+                ]
+              },
+              {
+                "group": "Desarrollo",
+                "pages": [
+                  "es/explorer/development/setup",
+                  "es/explorer/development/project-structure",
+                  "es/explorer/development/testing",
+                  "es/explorer/development/i18n"
+                ]
+              }
+            ]
+          },
+          {
+            "tab": "TUI",
+            "icon": "terminal",
+            "groups": [
+              {
+                "group": "Resumen",
+                "pages": [
+                  "es/tui/overview",
+                  "es/tui/installation"
+                ]
+              },
+              {
+                "group": "Uso de la TUI",
+                "pages": [
+                  "es/tui/configuration",
+                  "es/tui/data-modes",
+                  "es/tui/keyboard",
+                  "es/tui/workspace",
+                  "es/tui/troubleshooting"
+                ]
+              },
+              {
+                "group": "Arquitectura",
+                "pages": [
+                  "es/tui/architecture"
+                ]
+              },
+              {
+                "group": "Hoja de ruta",
+                "pages": [
+                  "es/tui/roadmap/product",
+                  "es/tui/roadmap/technical"
+                ]
+              }
+            ]
+          },
+          {
+            "tab": "Indexer",
+            "icon": "database",
+            "groups": [
+              {
+                "group": "Resumen",
+                "pages": [
+                  "es/indexer/overview",
+                  "es/indexer/running",
+                  "es/indexer/configuration"
+                ]
+              },
+              {
+                "group": "Funcionamiento interno",
+                "pages": [
+                  "es/indexer/pipeline",
+                  "es/indexer/contract-spec",
+                  "es/indexer/contract-events",
+                  "es/indexer/token-events",
+                  "es/indexer/observability"
+                ]
+              }
+            ]
+          },
+          {
+            "tab": "Referencia de API",
+            "icon": "code",
+            "groups": [
+              {
+                "group": "Referencia de API",
+                "pages": [
+                  "es/api-reference/introduction"
+                ]
+              },
+              {
+                "group": "Domains",
+                "openapi": "api-reference/openapi.yaml",
+                "pages": [
+                  "GET /v1/domains",
+                  "GET /v1/domains/{name}",
+                  "GET /v1/domains/{name}/events"
+                ]
+              },
+              {
+                "group": "Verification",
+                "openapi": "api-reference/openapi.yaml",
+                "pages": [
+                  "POST /v1/verify",
+                  "GET /v1/verify/contract/{contractId}",
+                  "GET /v1/verify/wasm/{wasmHash}",
+                  "GET /v1/verify/wasm/{wasmHash}/source",
+                  "GET /v1/verify/wasm/{wasmHash}/source/{path}"
+                ]
+              },
+              {
+                "group": "Analytics",
+                "openapi": "api-reference/openapi.yaml",
+                "pages": [
+                  "GET /api/v1/analytics/timeseries",
+                  "GET /api/v1/analytics/top"
+                ]
+              },
+              {
+                "group": "Health",
+                "openapi": "api-reference/openapi.yaml",
+                "pages": [
+                  "GET /healthz"
+                ]
+              }
+            ]
+          },
+          {
+            "tab": "Contribuir",
+            "icon": "git-pull-request",
+            "groups": [
+              {
+                "group": "Contribuir",
+                "pages": [
+                  "es/contributing/overview",
+                  "es/contributing/docs"
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  "api": {
+    "openapi": "api-reference/openapi.yaml",
+    "playground": {
+      "display": "interactive"
+    },
+    "examples": {
+      "languages": [
+        "curl",
+        "javascript",
+        "python",
+        "go"
+      ]
+    }
+  },
+  "contextual": {
+    "options": [
+      "copy",
+      "view",
+      "chatgpt",
+      "claude",
+      "perplexity",
+      "mcp",
+      "cursor",
+      "vscode"
+    ]
+  },
+  "search": {
+    "prompt": "Search StellarView docs"
+  },
+  "seo": {
+    "indexing": "navigable",
+    "metatags": {
+      "og:site_name": "StellarView Docs",
+      "twitter:card": "summary_large_image"
+    }
+  },
+  "errors": {
+    "404": {
+      "redirect": false,
+      "title": "Page not found",
+      "description": "This page moved or never existed. Try the search bar, or start from the [introduction](/)."
+    }
+  },
+  "footer": {
+    "socials": {
+      "github": "https://github.com/StellarViewOrg",
+      "telegram": "https://t.me/stellarviewdata"
+    }
+  }
+}

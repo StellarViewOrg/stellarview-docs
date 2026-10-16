@@ -1,0 +1,28 @@
+---
+title: "Providers"
+description: "The React context providers in StellarView Explorer and why their order matters."
+---
+
+import { Diagram } from "/snippets/diagram.mdx";
+
+Global state is shared through React context providers. Order matters: a provider can read the ones outside it, never the ones inside.
+
+<Diagram name="providers" alt="ThemeProvider wraps QueryProvider, which wraps NetworkProvider, then DeveloperModeProvider, then AnalyticsModeProvider, then the app." />
+
+| Order | Provider | Purpose | Hook |
+| --- | --- | --- | --- |
+| 1 (outer) | `ThemeProvider` | Light and dark mode | `useTheme()` |
+| 2 | `QueryProvider` | TanStack Query client | none |
+| 3 | `NetworkProvider` | Active Stellar network | `useNetwork()` |
+| 4 | `DeveloperModeProvider` | Show or hide technical details | `useDeveloperMode()` |
+| 5 (inner) | `AnalyticsModeProvider` | Analytics view toggle | `useAnalyticsMode()` |
+
+## Why this order
+
+- `ThemeProvider` is outermost because it depends on nothing.
+- `NetworkProvider` sits inside `QueryProvider` so a network change can invalidate cached queries.
+- `DeveloperModeProvider` sits inside `NetworkProvider` because its preferences can depend on the network.
+
+## Source
+
+[`lib/providers/index.tsx`](https://github.com/StellarViewOrg/stellarview-explorer/blob/main/apps/explorer-web/src/lib/providers/index.tsx)

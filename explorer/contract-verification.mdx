@@ -1,0 +1,29 @@
+---
+title: "Contract verification"
+description: "How StellarView links deployed Soroban Wasm to its public source code, and what each verification state means."
+---
+
+Verification answers a simple question: was this deployed binary built from this source code?
+
+<Warning>
+  The verification backend is still in development in the indexer. Until it ships, the Verification tab shows "Verification isn't available yet" and submissions stay `pending`. The explorer side is complete and built against the published [API](/api-reference/introduction), so it turns on without explorer changes once the service is live.
+</Warning>
+
+## Verification states
+
+| State | Meaning |
+| --- | --- |
+| **Verified** | The deployed binary matches the submitted source. |
+| **Unverified** | No source has been submitted for this `wasm_hash`. |
+| **Pending** | A submission is being built and compared. |
+| **Mismatch** | The submitted source builds, but not to the deployed binary. |
+| **Build failed** | The submitted source could not be built. |
+| **Not available** | The verification service can't be reached. |
+
+## Source browser and diff
+
+A verified contract exposes its full source tree. From there you can diff it against any other verified `wasm_hash`, which is the quickest way to review what changed in an upgrade.
+
+## Submitting source
+
+The form takes a git reference or an archive URL, plus the toolchain and build profile used to compile the contract. After you submit, the page polls until the result arrives, so there's no need to refresh.

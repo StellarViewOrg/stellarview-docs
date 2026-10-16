@@ -1,0 +1,57 @@
+---
+title: "Explorer overview"
+sidebarTitle: "Overview"
+description: "StellarView Explorer is a web block explorer for Stellar ledgers, transactions, accounts, assets, the DEX, and Soroban smart contracts."
+---
+
+StellarView Explorer is the web app of the suite. It's live at [stellarview.acachete.xyz](https://stellarview.acachete.xyz), needs no account, and works on Public, Testnet, and Futurenet.
+
+## What you can explore
+
+<CardGroup cols={2}>
+  <Card title="Transactions" icon="arrow-right-left" href="/explorer/transactions">
+    Look up any transaction by hash and read its operations and effects.
+  </Card>
+  <Card title="Accounts" icon="user" href="/explorer/accounts">
+    Balances, trustlines, signers, thresholds, and full activity history.
+  </Card>
+  <Card title="Assets" icon="coins" href="/explorer/assets">
+    Issued assets with `stellar.toml` metadata, holders, and trades.
+  </Card>
+  <Card title="Ledgers" icon="blocks" href="/explorer/ledgers">
+    Every ledger as it closes, streamed in real time.
+  </Card>
+  <Card title="Smart contracts" icon="file-code" href="/explorer/contracts">
+    Soroban code, storage, events, and a Read/Write console built from the contract spec.
+  </Card>
+  <Card title="Soroban Domains" icon="at-sign" href="/explorer/domains">
+    Resolve `*.xlm` names and browse registrations and their history.
+  </Card>
+  <Card title="DEX and liquidity pools" icon="chart-candlestick" href="/explorer/dex">
+    Trading pairs, order books, and AMM pools.
+  </Card>
+  <Card title="Network analytics" icon="chart-line" href="/explorer/analytics">
+    Network-wide time series and Top-N rankings, exportable to CSV or JSON.
+  </Card>
+</CardGroup>
+
+## Search
+
+The search bar accepts any Stellar identifier and figures out what it is:
+
+| Input | Example | Opens |
+| --- | --- | --- |
+| Account public key | `GA...` (56 characters) | Account page |
+| Contract ID | `CA...` (56 characters) | Contract page |
+| Transaction hash | 64 hex characters | Transaction page |
+| Ledger sequence | `52000000` | Ledger page |
+| Domain | `alice.xlm` | The account or contract it resolves to |
+| Asset | `USDC-GA5Z...` (code, dash, issuer) | Asset page |
+
+## Developer Mode
+
+Toggle Developer Mode from the header to show the details most people don't need: raw XDR, fees in stroops, full operation parameters, and effect metadata. The setting is remembered in your browser.
+
+## Languages
+
+The explorer is translated into English, Spanish, Portuguese, French, German, Chinese, Japanese, Korean, and Italian. The locale is the first segment of the URL, so `/es/public/...` opens the Spanish interface.

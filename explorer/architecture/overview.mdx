@@ -1,0 +1,34 @@
+---
+title: "Explorer architecture"
+sidebarTitle: "Overview"
+description: "How StellarView Explorer is built: a Next.js app that reads Horizon and Stellar RPC directly and uses the indexer for analytics, domains, and verification."
+---
+
+import { Diagram } from "/snippets/diagram.mdx";
+
+StellarView Explorer is a Next.js 16 application on React 19. It reads live chain data directly from **Horizon** and **Stellar RPC**, and calls the **StellarView Indexer** only for the features those APIs can't serve: network analytics, the domains browser, and contract verification.
+
+<Diagram name="architecture-overview" alt="The explorer reads Horizon and Stellar RPC directly and calls the indexer for analytics, domains, and verification." />
+
+## Frontend
+
+- **Next.js App Router** with locale and network as URL segments. See [Routing](/explorer/architecture/routing).
+- **TanStack Query** for fetching and caching. See [Data flow](/explorer/architecture/data-flow).
+- **shadcn/ui** components on **Tailwind CSS 4**, with **Recharts** for charts.
+- Pages render on the server on first load, then hydrate for client-side navigation.
+
+## Optional backend
+
+The explorer runs fine with no backend. Setting `NEXT_PUBLIC_INDEXER_URL` points it at an indexer and turns on the panels that depend on it. Without it, those panels show a "not available yet" state and the rest of the app is unaffected.
+
+## Design decisions
+
+- **Live data first.** Reading Horizon and RPC directly keeps the explorer accurate to the latest ledger and lets anyone run it without infrastructure.
+- **Network-aware everywhere.** Every query includes the network, so switching networks never mixes data between them.
+- **One client per network.** Horizon and RPC clients are created once per network and reused.
+- **Immutable data is cached forever.** Closed ledgers, transactions, and contract code use `staleTime: Infinity`, because they never change.
+- **Fail per panel.** A missing data source degrades one panel, never the whole page.
+
+## Source
+
+[`apps/explorer-web`](https://github.com/StellarViewOrg/stellarview-explorer/tree/main/apps/explorer-web) in the explorer repository.

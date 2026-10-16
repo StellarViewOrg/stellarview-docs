@@ -1,0 +1,29 @@
+---
+title: "DEX y liquidity pools"
+description: "Explora el exchange integrado de Stellar en StellarView Explorer: pares de trading, libros de órdenes, trades y liquidity pools AMM."
+---
+
+Stellar tiene un exchange descentralizado integrado en el protocolo. Combina un libro de órdenes clásico con liquidity pools de tipo automated market maker (AMM), y StellarView muestra ambos.
+
+## Pares de trading
+
+**Pares** lista los pares de trading, que puedes ordenar por volumen de 24h o por liquidez y buscar por código de activo. La página de un par muestra:
+
+- **Trades recientes**, en vivo desde Horizon.
+- **Libro de órdenes**: bids, asks y spread actuales, en vivo desde Horizon.
+- **Gráfico de velas** con resolución de 1 minuto, 1 hora o 1 día, desde el indexer.
+
+## Liquidity pools
+
+La página de un pool muestra las reservas actuales, la comisión, los participantes y un único feed de actividad con depósitos, retiros y trades.
+
+## Enlaces entre páginas
+
+- Las participaciones en pools que aparecen en los saldos de una cuenta enlazan al pool.
+- Las ofertas abiertas de una cuenta enlazan al par de trading.
+- Cada página de activo tiene una pestaña **Pools**.
+- Un Stellar Asset Contract enlaza a su activo clásico.
+
+<Note>
+  Los libros de órdenes, los trades y las reservas de los pools ya funcionan en vivo. Las velas históricas y la profundidad de los pools a lo largo del tiempo dependen de la agregación del DEX en el indexer, que todavía está en desarrollo. Hasta entonces, esos gráficos muestran "Trading data isn't available yet".
+</Note>

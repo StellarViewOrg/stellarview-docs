@@ -1,0 +1,32 @@
+---
+title: "Observability"
+description: "Prometheus metrics and health checks for StellarView Indexer."
+---
+
+When `HTTP_ADDR` or `METRICS_ADDR` is set, the `live` process starts an HTTP server next to ingestion.
+
+## Health check
+
+`GET /healthz` returns:
+
+- `200` when the database is reachable and the ingestion loop completed a poll within the last 2 minutes.
+- `503` otherwise, with a short reason such as `database unreachable` or `pipeline not advancing`. The raw database error is never exposed.
+
+It works as a Docker or Kubernetes liveness and readiness probe. The `serve` process exposes `/healthz` too.
+
+## Metrics
+
+`GET /metrics` uses the Prometheus exposition format.
+
+| Metric | Type | Meaning |
+| --- | --- | --- |
+| `indexer_ledgers_ingested_total` | Counter | Ledgers ingested |
+| `indexer_transactions_ingested_total` | Counter | Transactions ingested |
+| `indexer_operations_ingested_total` | Counter | Operations ingested |
+| `indexer_rpc_errors_total` | Counter | Failed RPC calls |
+| `indexer_db_errors_total` | Counter | Failed database writes |
+| `indexer_ingestion_lag_ledgers` | Gauge | Network tip minus the last ingested ledger |
+
+<Tip>
+  `indexer_ingestion_lag_ledgers` is the one to alert on. A lag that keeps growing means the indexer can't keep up with the network or has stalled.
+</Tip>

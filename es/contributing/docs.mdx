@@ -1,0 +1,78 @@
+---
+title: "Escribir documentación"
+description: "Cómo previsualizar, escribir y estructurar páginas para el sitio de documentación de StellarView."
+---
+
+Esta documentación se construye con Mintlify a partir del repositorio [stellarview-docs](https://github.com/StellarViewOrg/stellarview-docs). Cada página es un archivo `.mdx`, y la navegación se define en `docs.json`.
+
+## Previsualizar en local
+
+<Steps>
+  <Step title="Instala la CLI">
+    ```bash
+    bun add -g mint
+    ```
+  </Step>
+  <Step title="Ejecuta la vista previa">
+    ```bash
+    mint dev
+    ```
+    Abre [http://localhost:3000](http://localhost:3000). Las páginas se recargan cada vez que guardas.
+  </Step>
+  <Step title="Verifica antes de hacer push">
+    ```bash
+    mint validate
+    mint broken-links
+    ```
+    El CI ejecuta ambos comandos en cada pull request.
+  </Step>
+</Steps>
+
+## Estructura
+
+```text
+docs.json           # Site config and navigation for every language
+index.mdx           # Introduction
+quickstart.mdx
+concepts/           # Cross-cutting concepts
+explorer/  tui/  indexer/
+api-reference/      # Introduction plus openapi.yaml, which generates the endpoint pages
+contributing/
+es/                 # Spanish, mirroring the English tree file for file
+snippets/           # Reusable MDX components
+diagrams/           # D2 sources
+images/diagrams/    # Rendered SVGs, one light and one dark per diagram
+```
+
+## Agregar una página
+
+1. Crea el archivo `.mdx` con un `title` y una `description` en el frontmatter. La descripción se convierte en el fragmento de búsqueda y en la meta description, así que escríbela pensando en alguien que está decidiendo si hacer clic.
+2. Agrégala a `docs.json` tanto en la navegación `en` como en la `es`.
+3. Crea la versión en español en la misma ruta dentro de `es/`. Si no puedes traducirla, abre el pull request de todos modos e indícalo, y un maintainer te ayudará.
+
+## Diagramas
+
+Los diagramas se escriben en [D2](https://d2lang.com). Edita el código fuente en `diagrams/` y luego renderiza:
+
+```bash
+./scripts/render-diagrams.sh
+```
+
+Esto genera un SVG claro y otro oscuro por cada diagrama. Úsalos en una página con el snippet `Diagram` para que aparezca el correcto según el tema activo:
+
+```mdx
+import { Diagram } from "/snippets/diagram.mdx";
+
+<Diagram name="data-flow" alt="Describe what the diagram shows" />
+```
+
+Escribe siempre un texto `alt` real. Es lo que reciben los lectores de pantalla y los motores de búsqueda.
+
+## Estilo
+
+- **Escribe para alguien que está en medio de una tarea.** Empieza por lo que tiene que hacer y luego explica por qué.
+- **Usa mayúscula solo al inicio** en títulos y encabezados (sentence case).
+- **Nada de rayas largas (em dashes).** Usa coma, dos puntos, punto o paréntesis.
+- **Sé honesto sobre el estado.** Si una funcionalidad depende de trabajo de backend que todavía no se ha lanzado, dilo en un callout.
+- **Contrasta los comandos con el código actual** del repositorio correspondiente antes de documentarlos.
+- **Usa los callouts con moderación:** `<Note>` para contexto, `<Tip>` para atajos, `<Warning>` para cosas que pueden romperse.

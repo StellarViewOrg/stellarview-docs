@@ -1,0 +1,53 @@
+---
+title: "Internationalization"
+description: "How StellarView Explorer is translated into 9 languages, and how to add new text."
+---
+
+The explorer uses [next-intl](https://next-intl.dev) and ships in 9 languages.
+
+| Code | Language |
+| --- | --- |
+| `en` | English |
+| `es` | Spanish |
+| `pt` | Portuguese |
+| `fr` | French |
+| `de` | German |
+| `zh` | Chinese |
+| `ja` | Japanese |
+| `ko` | Korean |
+| `it` | Italian |
+
+## Translation files
+
+Each language has one JSON file in `apps/explorer-web/messages/` with the same keys:
+
+```text
+apps/explorer-web/messages/
+  en.json
+  es.json
+  pt.json
+  ...
+```
+
+## Adding text
+
+<Warning>
+  CI checks that every locale file has exactly the same keys. A key added only to `en.json` fails the build.
+</Warning>
+
+<Steps>
+  <Step title="Add the key to en.json" />
+  <Step title="Add the same key to the other 8 files">
+    Translate it if you can. If not, copy the English text so the key exists, and mention it in your pull request.
+  </Step>
+  <Step title="Use it in the component">
+    ```tsx
+    import { useTranslations } from "next-intl";
+
+    function MyComponent() {
+      const t = useTranslations("section");
+      return <p>{t("myKey")}</p>;
+    }
+    ```
+  </Step>
+</Steps>

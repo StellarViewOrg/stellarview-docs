@@ -1,0 +1,62 @@
+---
+title: "Entorno de desarrollo"
+description: "Configura StellarView Explorer para desarrollo local."
+---
+
+## Requisitos previos
+
+- [Bun](https://bun.sh), que se usa como gestor de paquetes y runtime.
+- [Git](https://git-scm.com).
+
+El explorer se comunica con endpoints públicos de Horizon y Stellar RPC, así que no necesitas Docker ni una base de datos para trabajar en él.
+
+## Ponerlo en marcha
+
+<Steps>
+  <Step title="Haz fork y clona">
+    ```bash
+    git clone https://github.com/<your-user>/stellarview-explorer.git
+    cd stellarview-explorer
+    ```
+  </Step>
+  <Step title="Instala">
+    ```bash
+    bun install
+    ```
+  </Step>
+  <Step title="Configura el entorno">
+    ```bash
+    cp apps/explorer-web/.env.local.example apps/explorer-web/.env.local
+    ```
+    Todas las variables son opcionales para trabajar en local. Consulta la tabla de abajo.
+  </Step>
+  <Step title="Inicia el servidor de desarrollo">
+    ```bash
+    bun run dev
+    ```
+    La app corre en [http://localhost:3000](http://localhost:3000).
+  </Step>
+</Steps>
+
+## Variables de entorno
+
+| Variable | Propósito |
+| --- | --- |
+| `NEXT_PUBLIC_RPC_URL` | Endpoint de Stellar RPC para la simulación de contratos y el estado en vivo. |
+| `NEXT_PUBLIC_APP_URL` | URL pública de la app, usada para enlaces absolutos y exportaciones. |
+| `NEXT_PUBLIC_INDEXER_URL` | URL base de la API del indexer. Si no está definida, la analítica, el navegador de dominios y la verificación muestran "todavía no disponible". |
+| `NEXT_PUBLIC_DOMAINS_REGISTRY_CONTRACT_ID_TESTNET` | Registro de Soroban Domains en testnet. El de mainnet está fijado en el código, y Futurenet no tiene despliegue. |
+| `NEXT_PUBLIC_UMAMI_WEBSITE_ID` | Analítica opcional que respeta la privacidad. Si no está definida, no se inyecta ningún script. |
+
+## Comandos
+
+Ejecútalos desde la raíz del repositorio.
+
+| Comando | Propósito |
+| --- | --- |
+| `bun run dev` | Inicia el servidor de desarrollo en el puerto 3000. |
+| `bun run build` | Build de producción. |
+| `bun run lint` | ESLint. |
+| `bun run format` | Formatea con Prettier. |
+| `bun run format:check:web` | Verifica el formato, igual que el CI. |
+| `bun run test` | Ejecuta la suite de pruebas una vez. |

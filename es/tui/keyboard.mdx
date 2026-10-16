@@ -1,0 +1,71 @@
+---
+title: "Teclado y comandos"
+description: "Referencia de atajos de teclado y de la paleta de comandos de StellarView TUI."
+---
+
+## Teclas globales
+
+| Tecla | Acción |
+| --- | --- |
+| `h` | Inicio |
+| `l` | Feed en vivo |
+| `u` | Consulta |
+| `s` | Configuración |
+| `/` | Abre la búsqueda o la paleta de comandos |
+| `b` / `f` | Atrás y adelante, entre pantallas y pasos de consulta |
+| `r` | Actualiza, saltándose el caché en la consulta |
+| `tab` | Cambia el foco |
+| `y` | Copia el identificador actual |
+| `?` | Muestra u oculta la ayuda |
+| `q` | Sale |
+
+## Desplazamiento
+
+| Tecla | Acción |
+| --- | --- |
+| `j` / `k` o flechas | Mueve la selección |
+| `pgup` / `pgdn`, `home` / `end` | Recorre vistas largas |
+| `enter` | Abre la fila seleccionada |
+
+La línea `Route:` muestra los breadcrumbs de la consulta actual. Si la recorres con `b` y `f`, se conserva tu selección en la lista.
+
+## Feed en vivo
+
+| Tecla | Acción |
+| --- | --- |
+| `p` | Pausa o reanuda |
+| `t` | Alterna entre todas las transacciones, las de Soroban y las clásicas |
+| `[` / `]` | Repite el historial retenido mientras está en pausa |
+| `left` / `right` | Elige qué copia `y`: hash, ledger o cuenta |
+| `enter` | Abre la transacción seleccionada |
+| `x` / `X` | Exporta las transacciones visibles a CSV o JSON |
+
+Filtros avanzados, escritos en la paleta:
+
+```text
+live filter account <G...>
+live filter contract <C...>
+live filter asset <CODE:ISSUER>
+live filter operation <type>
+```
+
+`b` o `live return` te devuelven al feed con su posición, filtros y estado de pausa intactos.
+
+## Paleta de comandos
+
+Escribe un identificador de Stellar o un comando. `enter` ejecuta el resultado resaltado, `esc` cierra la paleta y `ctrl+v` pega desde el portapapeles.
+
+| Comando | Qué hace |
+| --- | --- |
+| `open ledgers`, `open accounts`, `open assets`, `open contracts` | Recorre las entidades indexadas recientes |
+| `open ledgers limit 20 before <sequence>` | Retrocede por el historial de ledgers |
+| `open txs`, `open ops`, `open holders`, `open events`, `open storage`, `open invocations` | Abre una sublista de la entidad actual |
+| `open event <n>`, `open storage <n>`, `open invocation <n>` | Entra al detalle de un elemento de Soroban |
+| `open decode raw` / `open decode decoded` | Cambia las secciones de Soroban entre crudo y decodificado |
+| `lookup op <txhash>:<index>` | Abre una operación |
+| `open timeline` | Actividad normalizada de una cuenta, un activo o un contrato |
+| `open timeline type tx\|op\|holder\|event` | Una línea de tiempo por categoría |
+| `limit <n> offset <n>` | Pagina una sublista |
+| `search more <query> <offset>` | Carga más resultados de búsqueda |
+
+Los resultados se agrupan por origen (`INDEXER`, `HORIZON`, `LOCAL`) y por tipo, con las coincidencias exactas y de prefijo primero. Prefijos como `label:`, `bookmark:`, `note:`, `cache:`, `view:` y `watch:` buscan en tu espacio de trabajo local.

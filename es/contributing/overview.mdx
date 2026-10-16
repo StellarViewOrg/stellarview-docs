@@ -1,0 +1,51 @@
+---
+title: "Contribuir"
+description: "Cómo contribuir a StellarView: dónde está el código, cómo elegir un issue y qué necesita un pull request para fusionarse."
+---
+
+StellarView se construye en abierto, y las contribuciones de cualquier tamaño son bienvenidas: corregir un error tipográfico, una traducción, una nueva métrica del indexer o una funcionalidad completa.
+
+## Dónde está cada cosa
+
+| Repositorio | Stack | Contribuye aquí para |
+| --- | --- | --- |
+| [stellarview-explorer](https://github.com/StellarViewOrg/stellarview-explorer) | Next.js, TypeScript, Bun | El explorer web, su interfaz y las traducciones |
+| [stellarview-indexer](https://github.com/StellarViewOrg/stellarview-indexer) | Go, PostgreSQL, TimescaleDB | La ingesta, el almacenamiento y la API de lectura |
+| [stellarview-tui](https://github.com/StellarViewOrg/stellarview-tui) | Go, Bubble Tea | El cliente de terminal, el indexer de la TUI y la biblioteca de decodificación |
+| [stellarview-docs](https://github.com/StellarViewOrg/stellarview-docs) | Mintlify | Este sitio. Consulta [Escribir documentación](/es/contributing/docs). |
+
+## Elegir en qué trabajar
+
+<Steps>
+  <Step title="Encuentra un issue">
+    Los issues con la etiqueta [`good first issue`](https://github.com/search?q=org%3AStellarViewOrg+label%3A%22good+first+issue%22+state%3Aopen&type=issues) tienen un alcance pensado para una primera contribución. `help wanted` marca el trabajo en el que los maintainers agradecerían especialmente ayuda.
+  </Step>
+  <Step title="Pide que te lo asignen">
+    Comenta en el issue con una nota breve sobre cómo piensas abordarlo. Espera a que te lo asignen antes de empezar, para que dos personas no construyan lo mismo.
+  </Step>
+  <Step title="Saluda">
+    Únete a la [comunidad de Telegram](https://t.me/stellarviewdata) para hacer preguntas y hablar con los maintainers.
+  </Step>
+</Steps>
+
+<Tip>
+  Darle una estrella a los repositorios en los que contribuyes ayuda a que el proyecto se dé a conocer, y se tiene en cuenta cuando varias personas piden el mismo issue.
+</Tip>
+
+## Pull requests
+
+- **Título** en formato [Conventional Commits](https://www.conventionalcommits.org), como `feat(indexer): add asset supply metric` o `fix(explorer): handle missing home domain`.
+- **Un cambio por pull request.** Los pull requests más pequeños se revisan más rápido.
+- **Vincula el issue** con `Closes #123`.
+- **Los checks pasan**: lint, formato y pruebas, como se describe en el `CONTRIBUTING.md` de cada repositorio.
+- **Pruebas** para el comportamiento nuevo.
+- **Capturas de pantalla** para los cambios visibles en la interfaz.
+
+Un maintainer revisa cada pull request. Espera comentarios de revisión sobre la corrección respecto a Stellar además de la calidad del código.
+
+## Convenciones del proyecto
+
+- **Licencia:** Apache 2.0. Al contribuir, aceptas que tu trabajo se licencie de la misma forma.
+- **Idioma:** inglés para el código, los commits, los issues y los pull requests.
+- **Dependencias:** Renovate se encarga de las actualizaciones. No abras pull requests que solo suban versiones.
+- **Problemas de seguridad:** repórtalos de forma privada mediante los security advisories de GitHub en el repositorio afectado, no en un issue público.

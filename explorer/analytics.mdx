@@ -1,0 +1,26 @@
+---
+title: "Network analytics"
+description: "Network-wide Stellar activity in StellarView Explorer: transaction counts, volume, fees, accounts, asset supply, and Top-N rankings."
+---
+
+The **Analytics** section charts activity across the whole network. The data comes from the indexer's [analytics API](/api-reference/introduction).
+
+## History
+
+Time series at hourly, daily, or weekly resolution for:
+
+- Transaction count
+- Transaction volume (native XLM transfers)
+- Classic and Soroban fees
+- Active accounts and new accounts
+- Asset supply, summed across all assets or filtered to one asset by code and issuer, or by Soroban contract ID
+
+Export any chart as CSV or JSON.
+
+## Top N
+
+Ranked tables over a selectable time window: the most active contracts, the most active assets, and the highest fees.
+
+## When a metric is missing
+
+Each chart queries the indexer on its own. If one metric hasn't been aggregated, only that chart shows "Not available yet", and the others keep loading.

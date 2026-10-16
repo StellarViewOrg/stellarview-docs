@@ -1,0 +1,61 @@
+---
+title: "API reference"
+sidebarTitle: "Introduction"
+description: "HTTP API of StellarView Indexer: network analytics, Soroban Domains, and contract source verification."
+---
+
+The indexer exposes a small, read-focused HTTP API. The explorer uses it today, and you can use it from your own tools.
+
+<Info>
+  There's no public hosted instance yet. Run the indexer yourself with the [quickstart](/quickstart), then point the playground on each endpoint page at your server.
+</Info>
+
+## Base URLs
+
+The API is split across the indexer's two processes.
+
+| Process | Default address | Routes |
+| --- | --- | --- |
+| `live` | `HTTP_ADDR` or `METRICS_ADDR`, for example `http://localhost:9090` | `/v1/domains`, `/v1/verify`, `/healthz` |
+| `serve` | `API_ADDR`, default `http://localhost:8080` | `/api/v1/analytics/*`, `/healthz` |
+
+See [Configuration](/indexer/configuration) for how to expose each one.
+
+## Authentication
+
+None. Every endpoint is public and read-only, except `POST /v1/verify`, which accepts verification submissions.
+
+## Rate limits
+
+`POST /v1/verify` is limited to 10 requests per IP per minute. Over the limit it returns `429`. The window is fixed, so wait until the next minute before retrying. Read endpoints are not rate limited by the indexer, so put a proxy in front of a public deployment.
+
+## Errors
+
+Analytics and verification errors return JSON with an `error` field and a matching HTTP status:
+
+```json
+{ "error": "invalid parameter: limit 500 out of range [1, 100]" }
+```
+
+Domain endpoints never fail on input. A name or address that isn't known returns `200` with an empty result, and `indexed: false` means ingestion hasn't started yet.
+
+## Endpoints
+
+<CardGroup cols={2}>
+  <Card title="Analytics" icon="chart-line" href="/api-reference/analytics/network-metric-time-series">
+    Time series for `tx_count`, volume, fees, accounts, and asset supply, plus Top-N rankings over 24h, 7d, or 30d.
+  </Card>
+  <Card title="Domains" icon="at-sign" href="/api-reference/domains/list-domains-or-reverse-lookup-by-address">
+    Resolve `*.xlm` names, reverse-lookup an address, list registrations, and read event history.
+  </Card>
+  <Card title="Verification" icon="shield-check" href="/api-reference/verification/submit-contract-source-for-verification">
+    Submit contract source and read back status and source files.
+  </Card>
+  <Card title="Health" icon="heart-pulse" href="/api-reference/health/readiness-probe">
+    Liveness and readiness for both processes.
+  </Card>
+</CardGroup>
+
+## OpenAPI
+
+The full spec is in the docs repository at [`api-reference/openapi.yaml`](https://github.com/StellarViewOrg/stellarview-docs/blob/main/api-reference/openapi.yaml). Use it to generate a client in any language.

@@ -1,0 +1,46 @@
+---
+title: "Redes"
+description: "Cómo maneja StellarView las redes Public, Testnet y Futurenet en el explorer, la TUI y el indexer."
+---
+
+Stellar opera tres redes, y cada componente de StellarView puede trabajar con cualquiera de ellas.
+
+| Red | Para qué sirve |
+| --- | --- |
+| **Public** | Mainnet. Cuentas reales, activos reales, valor real. |
+| **Testnet** | Un entorno de pruebas estable para desarrollar y probar. Las cuentas se pueden fondear gratis con Friendbot. |
+| **Futurenet** | Una red experimental que anticipa cambios del protocolo antes de que lleguen a Testnet. |
+
+## En el explorer
+
+La red activa forma parte de cada URL, justo después del idioma:
+
+```text
+/en/public/transactions
+/en/testnet/transactions
+/en/futurenet/transactions
+```
+
+Cámbiala con el selector de red del encabezado. Como la red va en la ruta, un marcador o un enlace compartido siempre se abre en la red desde la que se copió.
+
+<Note>
+  Algunas funcionalidades dependen de contratos que solo existen en ciertas redes. Por ejemplo, la resolución de Soroban Domains no está disponible en Futurenet porque el contrato de registro no está desplegado allí.
+</Note>
+
+## En la TUI
+
+Define la red por perfil en `config.json`, o sobrescríbela para una sola sesión:
+
+```bash
+STELLAR_NETWORK=testnet ./bin/stellar-tui
+```
+
+Consulta [Configuración](/es/tui/configuration) para ver los perfiles y la lista completa de variables.
+
+## En el indexer
+
+El indexer ingiere una red por proceso, elegida con `NETWORK` (`public`, `testnet` o `futurenet`). El valor predeterminado es `public`.
+
+<Warning>
+  `NETWORK` debe coincidir con la red de `RPC_ENDPOINT`. El indexer la usa para elegir la passphrase de la red, y si no coinciden se generan hashes de transacción incorrectos.
+</Warning>

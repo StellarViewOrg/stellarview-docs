@@ -1,0 +1,52 @@
+---
+title: "Indexer overview"
+sidebarTitle: "Overview"
+description: "StellarView Indexer ingests Stellar ledgers, operations, contract events, and token events into PostgreSQL and TimescaleDB, and serves them over HTTP."
+---
+
+import { Diagram } from "/snippets/diagram.mdx";
+
+The indexer is a Go service that turns the Stellar ledger stream into queryable tables. It powers the explorer features that public APIs can't answer quickly, such as network-wide analytics, Soroban Domains history, and contract source verification.
+
+<Diagram name="indexer-pipeline" alt="Stellar RPC and the S3 data lake feed the live, backfill, and s3backfill commands, which transform data into PostgreSQL, Redis, and Typesense, served by the read API." />
+
+## What it stores
+
+| Store | Role |
+| --- | --- |
+| **PostgreSQL + TimescaleDB** | Ledgers, transactions, operations, effects, accounts, assets, contracts, contract events, token events, trades, and domains. Continuous aggregates back the analytics API. |
+| **Redis** | Pub/sub for real-time events. Optional: the indexer logs a warning and keeps going without it. |
+| **Typesense** | Full-text search over accounts, assets, and contracts. Optional for basic ingestion. |
+
+## How it ingests
+
+<CardGroup cols={3}>
+  <Card title="live" icon="radio">
+    Follows the network tip, about one ledger every 5 seconds. Resumes from the last ingested ledger after a restart.
+  </Card>
+  <Card title="backfill" icon="history">
+    Imports a ledger range from any RPC endpoint with parallel workers.
+  </Card>
+  <Card title="s3backfill" icon="archive">
+    Imports pubnet history from the public S3 data lake. No RPC and no credentials.
+  </Card>
+</CardGroup>
+
+## What it serves
+
+| Surface | Routes | Status |
+| --- | --- | --- |
+| Analytics | `/api/v1/analytics/timeseries`, `/api/v1/analytics/top` | Live |
+| Soroban Domains | `/v1/domains`, `/v1/domains/{name}`, `/v1/domains/{name}/events` | Live |
+| Contract verification | `/v1/verify` and `/v1/verify/...` | API frozen, build pipeline in development |
+| Health | `/healthz` | Live |
+| Metrics | `/metrics` | Internal, Prometheus format |
+
+Every public route is documented in the [API reference](/api-reference/introduction).
+
+## Next
+
+- [Run it locally](/indexer/running)
+- [Configuration](/indexer/configuration)
+- [Pipeline internals](/indexer/pipeline)
+- Source: [StellarViewOrg/stellarview-indexer](https://github.com/StellarViewOrg/stellarview-indexer)

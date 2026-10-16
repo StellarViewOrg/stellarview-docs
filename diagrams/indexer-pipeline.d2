@@ -1,0 +1,37 @@
+# Indexer ingestion pipeline: source, transform, store, publish.
+direction: right
+
+sources: Sources {
+  rpc: Stellar RPC
+  lake: Public S3 data lake {shape: cylinder}
+}
+
+pipeline: Indexer pipeline {
+  live: live
+  backfill: backfill
+  s3: s3backfill
+  transform: Transform
+  live -> transform
+  backfill -> transform
+  s3 -> transform
+}
+
+stores: Stores {
+  pg: PostgreSQL + TimescaleDB {shape: cylinder}
+  redis: Redis {shape: queue}
+  search: Typesense {shape: cylinder}
+}
+
+api: Read API {
+  serve: "serve: /api/v1/analytics/*"
+  http: "live: /v1/domains, /v1/verify"
+}
+
+sources.rpc -> pipeline.live: "~1 ledger every 5s"
+sources.rpc -> pipeline.backfill: ledger ranges
+sources.lake -> pipeline.s3: historical pubnet
+pipeline.transform -> stores.pg: store
+pipeline.transform -> stores.redis: publish
+pipeline.transform -> stores.search: index
+stores.pg -> api.serve
+stores.pg -> api.http

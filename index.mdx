@@ -1,0 +1,49 @@
+---
+title: "StellarView"
+sidebarTitle: "Introduction"
+description: "Open-source tools for exploring the Stellar network: a web explorer, a terminal explorer, an indexer, and a public read API."
+mode: "wide"
+---
+
+import { Diagram } from "/snippets/diagram.mdx";
+
+StellarView is an open-source suite for looking at what happens on Stellar. Use it in the browser, from the terminal, or run the indexer yourself and query the data over HTTP. Every part is licensed under Apache 2.0 and developed in the open.
+
+<CardGroup cols={2}>
+  <Card title="Explorer" icon="compass" href="/explorer/overview">
+    Web explorer for ledgers, transactions, accounts, assets, the DEX, Soroban contracts, and `*.xlm` domains. Available in 9 languages.
+  </Card>
+  <Card title="TUI" icon="terminal" href="/tui/overview">
+    Keyboard-driven explorer for the shell, with local bookmarks, notes, labels, and a live transaction feed.
+  </Card>
+  <Card title="Indexer" icon="database" href="/indexer/overview">
+    Go service that ingests ledgers, operations, contract events, and token events into PostgreSQL and TimescaleDB.
+  </Card>
+  <Card title="API reference" icon="code" href="/api-reference/introduction">
+    HTTP endpoints for network analytics, Soroban Domains, and contract source verification.
+  </Card>
+</CardGroup>
+
+## How the pieces fit
+
+The web explorer reads live data straight from Horizon and Stellar RPC, so it works without any StellarView backend. The indexer adds what those APIs can't answer on their own: history, network-wide analytics, domain lookups, and contract verification. The TUI can run against Stellar RPC alone, or pair with its own indexer for search, timelines, and holders.
+
+<Diagram name="architecture-overview" alt="StellarView clients read from the Stellar network directly and from the StellarView indexers, which store data in PostgreSQL, Redis, and Typesense." />
+
+## Start here
+
+<Columns cols={3}>
+  <Card title="Browse the network" icon="globe" href="https://stellarview.acachete.xyz">
+    Open the hosted explorer. Nothing to install.
+  </Card>
+  <Card title="Quickstart" icon="zap" href="/quickstart">
+    Run the explorer, TUI, or indexer locally in a few minutes.
+  </Card>
+  <Card title="Contribute" icon="git-pull-request" href="/contributing/overview">
+    Pick up an issue and send your first pull request.
+  </Card>
+</Columns>
+
+---
+
+<sub>StellarView is independent software, not affiliated with, sponsored, or endorsed by the Stellar Development Foundation. Built on Stellar.</sub>

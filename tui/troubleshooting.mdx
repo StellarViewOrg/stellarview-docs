@@ -1,0 +1,22 @@
+---
+title: "Troubleshooting"
+description: "Fixes for common StellarView TUI problems: missing endpoints, RPC errors, locked cache, and hybrid fallback."
+---
+
+<AccordionGroup>
+  <Accordion title="&quot;no indexer_url or rpc_endpoint is configured&quot;">
+    The active profile has neither endpoint. Set `rpc_endpoint` in `~/.config/stellar-tui/config.json`, or launch with `STELLAR_RPC_URL`.
+  </Accordion>
+  <Accordion title="RPC lookups time out or fail">
+    The endpoint may be down or rate limiting you. Try another public endpoint, or test on testnet with `STELLAR_NETWORK=testnet`.
+  </Accordion>
+  <Accordion title="SQLite reports &quot;database is locked&quot;">
+    Another `stellar-tui` process holds the cache. Close it, or set a different `cache.path` in the config to run isolated sessions side by side.
+  </Accordion>
+  <Accordion title="The data looks stale">
+    Press `r` on the lookup screen to force a network read. For a full reset, delete `~/.config/stellar-tui/cache.db` and restart. This also deletes your bookmarks, notes, and labels.
+  </Accordion>
+  <Accordion title="Hybrid mode keeps falling back to RPC">
+    The TUI indexer isn't running or isn't reachable at `indexer_url`. Start it with `cd tui-indexer && make run-serve` and check the URL in your profile. See [Data modes](/tui/data-modes).
+  </Accordion>
+</AccordionGroup>

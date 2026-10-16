@@ -1,0 +1,193 @@
+---
+title: "Roadmap técnico"
+description: Líneas de implementación técnica planeadas para StellarView TUI.
+---
+
+Este roadmap describe el trabajo técnico planeado detrás de StellarView TUI. Está organizado por líneas de implementación, para que los cambios futuros se puedan planificar sin convertir la documentación en una auditoría de estado.
+
+La base actual incluye:
+
+- runtime de Bubble Tea y shell con Lip Gloss
+- modos de datos RPC, indexado e híbrido
+- metadatos de origen y etiquetas de respaldo
+- flujos de consulta para ledgers, transacciones, cuentas, activos y contratos
+- listas, sublistas y líneas de tiempo indexadas
+- perfiles, metadatos, historial y caché de entidades visitadas en SQLite local
+- primeras vistas de Soroban decodificadas y crudas para eventos, specs y almacenamiento
+
+## Línea 1: navegación y composición de vistas
+
+Propósito:
+
+- lograr que la exploración en la terminal se sienta continua a medida que las vistas de entidades ganan profundidad
+
+Implementación planeada:
+
+- Agregar estado de breadcrumbs al modelo de la app.
+- Conservar la selección de listas y los offsets de desplazamiento en las transiciones anidadas del explorador.
+- Agregar encabezados de contexto a las sublistas del explorador.
+- Normalizar las acciones sobre entidades relacionadas para que cada fila exponga un comando, una etiqueta y un valor para el portapapeles predecibles.
+- Dividir las vistas de detalle más complejas en secciones reutilizables, manteniendo el control del teclado local a cada modelo de vista.
+
+Consideraciones técnicas:
+
+- Los breadcrumbs deberían derivarse de las acciones de navegación, no duplicarse a mano en el código de renderizado.
+- El estado propio de cada vista debería seguir acotado a los modelos de Bubble Tea, para no acoplar detalles de renderizado al estado raíz de la aplicación.
+- El `LookupExplorerSnapshot` existente puede seguir siendo el puente para las subvistas tipo lista, pero las vistas de detalle más profundas pueden necesitar un descriptor de ruta más rico.
+
+## Línea 2: profundidad de transacciones y operaciones
+
+Propósito:
+
+- convertir la consulta de transacciones en una superficie de investigación completa
+
+Implementación planeada:
+
+- Agregar efectos al detalle de la transacción cuando haya datos indexados disponibles.
+- Agregar vistas de detalle de operaciones con campos específicos por tipo.
+- Enlazar las filas de operaciones con las cuentas de origen, los destinos, los activos, los contratos y las transacciones padre.
+- Mejorar los resúmenes de operaciones para la actividad de Soroban y la relacionada con activos.
+- Agregar pruebas del recorrido de transacción a operación y de la selección de comandos de operaciones.
+
+Consideraciones técnicas:
+
+- Los efectos deberían cargarse mediante APIs de lectura indexadas siempre que sea posible.
+- El modo RPC directo debería seguir siendo claro sobre las secciones que solo existen con datos indexados.
+- Los renderizadores de operaciones deberían preferir campos tipados en lugar de resúmenes que sean solo texto.
+
+## Línea 3: inspección de Soroban
+
+Propósito:
+
+- hacer comprensibles desde la terminal los contratos y la actividad de Soroban
+
+Implementación planeada:
+
+- Agregar modelos de detalle de invocaciones.
+- Mostrar el nombre de la función, los argumentos, el estado del resultado, los recursos y el contexto de la transacción relacionada.
+- Agregar vistas de autorización cuando el payload de origen lo permita.
+- Ampliar el detalle de eventos, más allá de los resúmenes compactos, con secciones de topic y valor.
+- Agregar paginación del almacenamiento y comandos para ver su detalle.
+- Mantener los modos decodificado y crudo disponibles en cada sección con mucho contenido de Soroban.
+
+Consideraciones técnicas:
+
+- Las vistas decodificadas nunca deberían ocultar los valores crudos de respaldo.
+- La paginación del almacenamiento y de los eventos debería usar el patrón de comandos limit/offset existente.
+- El análisis de specs de contratos debería seguir tolerando specs decodificados en parte o no disponibles.
+
+## Línea 4: monitoreo en vivo
+
+Propósito:
+
+- evolucionar el feed en vivo de actividad reciente refrescada a un monitoreo nativo de streams
+
+Implementación planeada:
+
+- Agregar un consumidor de streams para los canales en vivo de `tui-indexer/`.
+- Mantener la ruta actual de polling como respaldo.
+- Agregar controles de repetición sobre el historial retenido.
+- Agregar filtros por cuenta, activo, contrato, tipo de operación, clase de transacción y actividad de Soroban.
+- Conservar la fila seleccionada y la posición del viewport mientras llegan filas nuevas.
+- Agregar pruebas del orden de las actualizaciones del stream, la deduplicación, el comportamiento de la pausa y la estabilidad de la selección.
+
+Consideraciones técnicas:
+
+- El feed en vivo debería mantener un historial acotado para evitar que la memoria crezca sin límite.
+- La ingesta del stream debería deduplicar por hash de transacción y conservar el orden de ledger y de aplicación.
+- La pausa debería detener los cambios de la interfaz por actualizaciones en vivo sin descartar los eventos retenidos que se necesitan para la repetición.
+
+## Línea 5: espacio de trabajo local y caché
+
+Propósito:
+
+- hacer que el estado local sea útil en flujos de investigación reales
+
+Implementación planeada:
+
+- Agregar flujos para crear, editar y borrar marcadores, etiquetas y notas.
+- Agregar filtros de metadatos locales en las vistas de búsqueda y consulta.
+- Agregar la opción de abrir desde el caché las entidades inspeccionadas recientemente.
+- Agregar un respaldo en caché cuando las lecturas del backend o de RPC no estén disponibles y exista un payload local reciente.
+- Agregar vistas guardadas que conserven el comando, los filtros, la entidad y el contexto del perfil.
+- Agregar pruebas de migración para cada cambio del esquema de SQLite.
+
+Consideraciones técnicas:
+
+- Los payloads de entidades en caché deberían incluir la etiqueta de origen, la marca de tiempo de actualización, un resumen y suficientes metadatos tipados para renderizar una vista degradada.
+- El respaldo en caché debe ser explícito en los metadatos de origen, para que los usuarios sepan que están viendo datos locales.
+- Las vistas guardadas deberían referenciar comandos y filtros en lugar de guardar estado duplicado de la interfaz siempre que sea posible.
+
+## Línea 6: búsqueda y ranking
+
+Propósito:
+
+- convertir la búsqueda en el camino más rápido tanto hacia los datos de Stellar como hacia el contexto local
+
+Implementación planeada:
+
+- Mejorar el ranking de resultados locales y del backend para entradas parciales.
+- Agrupar los resultados de búsqueda por tipo y origen en la paleta de comandos.
+- Agregar paginación o refinamiento de resultados para conjuntos grandes de resultados indexados.
+- Hacer que los resultados de etiquetas, marcadores, notas y entidades en caché sean ejecutables de forma consistente.
+- Agregar pruebas de ranking, deduplicación, filas deshabilitadas y asociación de metadatos.
+
+Consideraciones técnicas:
+
+- El ranking debería preferir las coincidencias exactas con el objetivo, luego las de prefijo y luego las de metadatos.
+- Los resultados locales deberían seguir disponibles cuando el backend no lo esté.
+- Los límites de resultados del backend deberían ser explícitos, para que la paleta de comandos siga respondiendo con fluidez.
+
+## Línea 7: confiabilidad y preparación para el lanzamiento
+
+Propósito:
+
+- asegurar que el producto de terminal siga siendo predecible a medida que se agregan más rutas de lectura y estado local
+
+Implementación planeada:
+
+- Ampliar las pruebas del respaldo híbrido y de la resolución desde un único origen.
+- Agregar pruebas de integración para líneas de tiempo, paginación de listas y renderizado decodificado y crudo de Soroban.
+- Agregar cobertura de migraciones para los esquemas locales de SQLite.
+- Agregar pruebas de la API de lectura para los nuevos endpoints de efectos, invocaciones, almacenamiento y eventos.
+- Agregar pruebas basadas en fixtures para el renderizado de estados degradados.
+
+Consideraciones técnicas:
+
+- Las pruebas que requieren Stellar RPC, acceso al data lake público o PostgreSQL local deberían estar claramente separadas de las pruebas unitarias puras.
+- Las pruebas que dependen de la red deberían omitirse, o documentar sus requisitos previos, cuando la infraestructura local no esté disponible.
+- La documentación debería mantenerse alineada con el comportamiento implementado después de cada hito.
+
+## Línea 8: alineación de la documentación y los lanzamientos
+
+Propósito:
+
+- mantener la documentación de arquitectura, las guías de configuración y los flujos de CI alineados con la alpha implementada después de cada entrega de hito
+
+Implementación planeada:
+
+- Actualizar la documentación de arquitectura y configuración para reflejar las capacidades y limitaciones actuales de la TUI.
+- Documentar los niveles de pruebas y los requisitos de infraestructura de `tui/` y `tui-indexer/`.
+- Agregar flujos de CI para compilación, lint, pruebas unitarias y cobertura de integración de la terminal.
+- Ampliar las pruebas de la API de lectura para el feed en vivo, la búsqueda y los subrecursos paginados de Soroban.
+
+Consideraciones técnicas:
+
+- La documentación debería describir la dirección de las capacidades sin convertir las páginas del roadmap en auditorías de versiones.
+- La CI debería ejecutar por defecto niveles rápidos y deterministas, y mantener opcionales o documentadas las verificaciones que dependen de la red.
+- La documentación en inglés y en español debería mantenerse sincronizada en las páginas de arquitectura y de configuración del entorno de desarrollo.
+
+## Orden de implementación
+
+El orden recomendado es:
+
+1. Navegación y composición de vistas.
+2. Profundidad de transacciones y operaciones.
+3. Vistas de invocaciones y autorizaciones de Soroban.
+4. Monitoreo en vivo nativo de streams.
+5. Espacio de trabajo local editable y apertura desde el caché.
+6. Ranking de búsqueda y agrupación de resultados.
+7. Mayor cobertura de confiabilidad.
+8. Alineación de la documentación y los lanzamientos.
+
+Este orden mantiene útil la TUI en cada paso, mientras aumenta de forma constante la profundidad que se espera de un explorador profesional de Stellar para la terminal.
