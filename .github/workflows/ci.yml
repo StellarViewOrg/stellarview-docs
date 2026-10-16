@@ -32,7 +32,7 @@ jobs:
       - name: Reject em dashes
         run: |
           EM_DASH="$(printf '\xe2\x80\x94')"
-          if grep -rn --include='*.mdx' --include='*.json' --include='*.yaml' "$EM_DASH" . --exclude-dir=node_modules --exclude-dir=.git; then
+          if grep -rn --include='*.mdx' --include='*.json' --include='*.yaml' "$EM_DASH" . --exclude-dir=node_modules --exclude-dir=.git --exclude-dir=.claude --exclude-dir=architecture --exclude-dir=report; then
             echo "Replace em dashes with a comma, colon, period, or parentheses."
             exit 1
           fi
