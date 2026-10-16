@@ -1,0 +1,78 @@
+---
+title: "Actualización de dependencias"
+description: "Cómo Renovate mantiene al día las dependencias de StellarView con pocos pull requests agrupados, y cómo trabajar con ellos."
+---
+
+Todos los repositorios de StellarView usan [Renovate](https://docs.renovatebot.com/) para actualizar dependencias. No se usan pull requests de Dependabot. La configuración vive en `renovate.json`, en la raíz de cada repositorio.
+
+## Cómo se agrupan las actualizaciones
+
+Renovate junta las actualizaciones para que cada repositorio reciba la menor cantidad posible de pull requests:
+
+| Pull request | Qué contiene | Cuándo se abre |
+| --- | --- | --- |
+| `all non-major dependencies` | Todas las actualizaciones minor, patch, pin y digest | Lunes antes de las 6:00 UTC |
+| `all major dependencies` | Todas las actualizaciones major | Lunes antes de las 6:00 UTC |
+| `security updates` | Correcciones de vulnerabilidades conocidas | En cuanto aparece una alerta |
+| Lock file maintenance | Una actualización del lockfile para dependencias transitivas | Lunes antes de las 6:00 UTC |
+
+Las majors van en su propio pull request, para que una actualización que rompe algo nunca frene las seguras. Cada repositorio tiene como máximo tres pull requests de Renovate abiertos a la vez. Las actualizaciones de seguridad no respetan ese límite ni el horario.
+
+## Dependency Dashboard
+
+Cada repositorio tiene un issue **Dependency Dashboard** que Renovate mantiene actualizado. Úsalo para:
+
+- Ver las actualizaciones pendientes y programadas.
+- Marcar una casilla para abrir una actualización ya, sin esperar al lunes.
+- Marcar la casilla de rebase para rebasar un pull request de Renovate abierto sobre `main`.
+
+<Warning>
+Deja el issue del dashboard abierto. Si lo cierras, Renovate deja de mostrar las actualizaciones pendientes y los controles para reintentar.
+</Warning>
+
+## Revisar un pull request de Renovate
+
+Un pull request de Renovate se mergea como cualquier otro: todos los workflows requeridos tienen que pasar. Si un check falla, el arreglo va en el mismo pull request, como un commit en la rama de Renovate. Un arreglo nunca salta tests, desactiva reglas de lint ni edita un workflow para que pase.
+
+Antes de subir un arreglo, corre los mismos checks que corre CI en ese repositorio:
+
+<Tabs>
+  <Tab title="Explorer">
+    ```bash
+    bun install
+    bun run build:web
+    bun run format:check:web
+    bun run lint:web
+    ```
+  </Tab>
+  <Tab title="Indexer">
+    ```bash
+    gofmt -l .
+    go vet ./...
+    go test -race -short ./...
+    go build -o bin/indexer ./cmd/indexer
+    ```
+    Los tests necesitan una base de datos PostgreSQL con TimescaleDB, como la que levanta CI.
+  </Tab>
+  <Tab title="TUI">
+    ```bash
+    # tui/
+    gofmt -l . && go vet ./... && make test-all && make build
+    # sordecode/
+    go test ./...
+    # tui-indexer/
+    gofmt -l . && go vet ./... && make test
+    ```
+    `gofmt -l .` no debe imprimir nada.
+  </Tab>
+  <Tab title="Docs">
+    ```bash
+    mint validate
+    mint broken-links
+    ```
+  </Tab>
+</Tabs>
+
+<Note>
+Cuando alguien sube un commit a una rama de Renovate, Renovate deja de rebasarla. Si después la rama tiene conflictos con `main`, marca la casilla de rebase en el pull request, o ciérralo y deja que Renovate abra uno nuevo.
+</Note>

@@ -1,0 +1,78 @@
+---
+title: "Dependency updates"
+description: "How Renovate keeps StellarView dependencies current with a few grouped pull requests, and how to work with them."
+---
+
+Every StellarView repository uses [Renovate](https://docs.renovatebot.com/) for dependency updates. Dependabot pull requests are not used. The configuration lives in `renovate.json` at the root of each repository.
+
+## How updates are grouped
+
+Renovate batches upgrades so each repository gets as few pull requests as possible:
+
+| Pull request | What it contains | When it opens |
+| --- | --- | --- |
+| `all non-major dependencies` | Every minor, patch, pin, and digest update | Mondays before 6:00 UTC |
+| `all major dependencies` | Every major update | Mondays before 6:00 UTC |
+| `security updates` | Fixes for known vulnerabilities | As soon as an alert appears |
+| Lock file maintenance | A refresh of the lockfile for transitive dependencies | Mondays before 6:00 UTC |
+
+Majors stay in their own pull request so a breaking upgrade never holds back the safe ones. At most three Renovate pull requests are open per repository at a time. Security updates skip that limit and the schedule.
+
+## Dependency Dashboard
+
+Each repository has a **Dependency Dashboard** issue that Renovate keeps up to date. Use it to:
+
+- See pending and scheduled updates.
+- Check a box to open an update now instead of waiting for Monday.
+- Check the rebase box to rebase an open Renovate pull request on `main`.
+
+<Warning>
+Keep the dashboard issue open. Closing it stops Renovate from showing pending updates and retry controls.
+</Warning>
+
+## Reviewing a Renovate pull request
+
+A Renovate pull request is merged like any other: every required workflow must pass. When a check fails, the fix goes into the same pull request, as a commit on the Renovate branch. A fix never skips tests, disables lint rules, or edits a workflow to make it pass.
+
+Before pushing a fix, run the same checks CI runs for that repository:
+
+<Tabs>
+  <Tab title="Explorer">
+    ```bash
+    bun install
+    bun run build:web
+    bun run format:check:web
+    bun run lint:web
+    ```
+  </Tab>
+  <Tab title="Indexer">
+    ```bash
+    gofmt -l .
+    go vet ./...
+    go test -race -short ./...
+    go build -o bin/indexer ./cmd/indexer
+    ```
+    The tests need a PostgreSQL database with TimescaleDB, like the one CI starts.
+  </Tab>
+  <Tab title="TUI">
+    ```bash
+    # tui/
+    gofmt -l . && go vet ./... && make test-all && make build
+    # sordecode/
+    go test ./...
+    # tui-indexer/
+    gofmt -l . && go vet ./... && make test
+    ```
+    `gofmt -l .` must print nothing.
+  </Tab>
+  <Tab title="Docs">
+    ```bash
+    mint validate
+    mint broken-links
+    ```
+  </Tab>
+</Tabs>
+
+<Note>
+Once someone pushes a commit to a Renovate branch, Renovate stops rebasing it. If the branch later conflicts with `main`, check the rebase box in the pull request, or close it and let Renovate open a new one.
+</Note>

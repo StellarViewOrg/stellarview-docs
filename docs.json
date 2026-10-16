@@ -235,7 +235,8 @@
                 "group": "Contribute",
                 "pages": [
                   "contributing/overview",
-                  "contributing/docs"
+                  "contributing/docs",
+                  "contributing/dependencies"
                 ]
               }
             ]
@@ -425,7 +426,8 @@
                 "group": "Contribuir",
                 "pages": [
                   "es/contributing/overview",
-                  "es/contributing/docs"
+                  "es/contributing/docs",
+                  "es/contributing/dependencies"
                 ]
               }
             ]
