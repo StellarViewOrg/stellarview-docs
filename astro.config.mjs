@@ -82,6 +82,7 @@ export default defineConfig({
             { slug: "development/project-structure" },
             { slug: "development/testing" },
             { slug: "development/i18n" },
+            { slug: "development/dependency-management" },
           ],
         },
       ],
